@@ -1,18 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Home } from './home.component';
+// 修正導入：使用正確的類別名稱 HomeComponent
+import { HomeComponent } from './home.component'; 
 
-describe('Home', () => {
-  let component: Home;
-  let fixture: ComponentFixture<Home>;
+describe('HomeComponent', () => { // 修正描述名稱
+  let component: HomeComponent; // 修正類別名稱
+  let fixture: ComponentFixture<HomeComponent>; // 修正類別名稱
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Home]
+      imports: [HomeComponent] // 修正類別名稱
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Home);
+    fixture = TestBed.createComponent(HomeComponent); // 修正類別名稱
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
