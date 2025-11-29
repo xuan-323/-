@@ -1,12 +1,14 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+// src/app/app.ts
+import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router'; // << 確保有導入
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  standalone: true, // 確保是 Standalone
+  imports: [RouterModule], // << 關鍵修正：導入路由模組
+  templateUrl: './app.html', 
+  styleUrls: ['./app.css'] 
 })
-export class App {
-  protected readonly title = signal('my-first-angular-app');
+export class AppComponent {
+  title = 'foodie-social-app';
 }

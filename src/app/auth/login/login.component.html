@@ -1,0 +1,28 @@
+<div class="login-container">
+    <p class="link-area">
+  還沒有帳號？ <a [routerLink]="['/auth/signup']">立即註冊</a>
+</p>
+
+  <h1>會員登入</h1>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+    <div class="form-group">
+      <label for="email">電子郵件</label>
+      <input id="email" type="email" formControlName="email">
+    </div>
+
+    <div class="form-group">
+      <label for="password">密碼</label>
+      <input id="password" type="password" formControlName="password">
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <button type="submit" [disabled]="isLoading">
+      <span *ngIf="isLoading">登入中...</span>
+      <span *ngIf="!isLoading">登入</span>
+    </button>
+  </form>
+</div>
