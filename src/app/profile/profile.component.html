@@ -1,0 +1,34 @@
+<div class="auth-container">
+    <h1>📝 個人檔案設定</h1>
+    <p>設定您的公開名稱與個人簡介。</p>
+
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+
+        <div class="form-group">
+            <label for="name">公開名稱:</label>
+            <input type="text" id="name" formControlName="name">
+            <div *ngIf="profileForm.get('name')?.touched && profileForm.get('name')?.errors?.['required']" class="input-error-tip">
+                名稱為必填。
+            </div>
+            <div *ngIf="profileForm.get('name')?.errors?.['maxlength']" class="input-error-tip">
+                名稱不能超過 50 個字元。
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="bio">個人簡介 (Bio):</label>
+            <textarea id="bio" formControlName="bio" rows="4"></textarea>
+            <div *ngIf="profileForm.get('bio')?.errors?.['maxlength']" class="input-error-tip">
+                簡介不能超過 250 個字元。
+            </div>
+        </div>
+
+        <button type="submit" [disabled]="profileForm.invalid || isLoading">
+            <span *ngIf="isLoading">正在儲存...</span>
+            <span *ngIf="!isLoading">儲存變更</span>
+        </button>
+    </form>
+</div>
