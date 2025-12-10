@@ -8,6 +8,7 @@ import { AuthService } from '../auth.service';
 
 // 創建模擬服務 (Mock Services)
 const mockAuthService = {
+  
   signIn: () => Promise.resolve({ user: { uid: 'test-user' } }),
 };
 
