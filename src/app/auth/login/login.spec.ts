@@ -8,7 +8,7 @@ import { AuthService } from '../auth.service';
 
 // 創建模擬服務 (Mock Services)
 const mockAuthService = {
-  
+
   signIn: () => Promise.resolve({ user: { uid: 'test-user' } }),
 };
 
@@ -53,3 +53,4 @@ describe('LoginComponent', () => { // 修正描述名稱
       // expect(mockAuthService.signIn).toHaveBeenCalled();
   });
 });
+//test
