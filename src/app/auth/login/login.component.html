@@ -1,76 +1,84 @@
 <div class="login-container">
     
-    <!-- 提示區塊：顯示登入錯誤或重設郵件發送成功訊息 -->
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-    <div *ngIf="resetMessage" class="success-message">{{ resetMessage }}</div>
+    @if (errorMessage) {
+        <div class="error-message">{{ errorMessage }}</div>
+    }
+    @if (resetMessage) {
+        <div class="success-message">{{ resetMessage }}</div>
+    }
     
     <h1>🍽️ 會員登入</h1>
     <p class="subtitle">歡迎回來，讓我們找到你的飯搭子！</p>
     
-    <!-- 忘記密碼連結/返回登入 -->
     <p class="forgot-password-area">
         <a (click)="toggleResetForm()" class="app-link">
-            <span *ngIf="!showResetForm">忘記密碼？</span>
-            <span *ngIf="showResetForm">返回登入</span>
+            @if (!showResetForm) {
+                <span>忘記密碼？</span>
+            } @else {
+                <span>返回登入</span>
+            }
         </a>
     </p>
 
-    <!-- 1. 密碼重設表單 (忘記密碼流程) -->
-    <div *ngIf="showResetForm" class="reset-form-box">
-        <p>請輸入您的信箱，我們將發送重設連結：</p>
-        
-        <!-- 注意：這裡使用 formControlName="email" 來綁定表單 -->
-        <input id="email" type="email" formControlName="email">
-        
-        <button (click)="onForgotPassword()" [disabled]="isLoading">
-            <span *ngIf="isLoading" class="loading-content">
-                <div class="spinner"></div> 正在發送...
-            </span>
-            <span *ngIf="!isLoading">
-                發送重設郵件
-            </span>
-        </button>
-    </div>
-
-    <!-- 2. 登入表單 (當 showResetForm 為 false 時顯示) -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" *ngIf="!showResetForm">
-
-        <div class="form-group">
-            <label for="email">電子郵件</label>
+    @if (showResetForm) {
+        <div class="reset-form-box">
+            <p>請輸入您的信箱，我們將發送重設連結：</p>
+            
             <input id="email" type="email" formControlName="email">
+            
+            <button (click)="onForgotPassword()" [disabled]="isLoading">
+                @if (isLoading) {
+                    <span class="loading-content">
+                        <div class="spinner"></div> 正在發送...
+                    </span>
+                } @else {
+                    <span>
+                        發送重設郵件
+                    </span>
+                }
+            </button>
         </div>
+    } @else {
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-        <div class="form-group">
-            <label for="password">密碼</label>
-            <input id="password" type="password" formControlName="password">
-        </div>
+            <div class="form-group">
+                <label for="email">電子郵件</label>
+                <input id="email" type="email" formControlName="email">
+            </div>
 
-        <!-- 登入按鈕，帶有圓圈動畫和失敗狀態 -->
-        <button type="submit" [disabled]="isLoading">
-            <span *ngIf="isLoading" class="loading-content">
-                <div class="spinner"></div> 正在登入...
-            </span>
-            <!-- 登入失敗狀態 -->
-            <span *ngIf="!isLoading && errorMessage" class="fail-text">
-                登入失敗，請重試
-            </span>
-            <!-- 預設狀態 -->
-            <span *ngIf="!isLoading && !errorMessage">
-                登入
-            </span>
-        </button>
-        
-        <!-- 登入失敗時的忘記密碼提示 (在按鈕下方) -->
-        <div *ngIf="showLoginFailPrompt && !showResetForm" class="fail-prompt-box">
-            <p>💡 帳號或密碼錯誤。需要重設密碼嗎？</p>
-            <a (click)="toggleResetForm()" class="app-link">
-                點擊這裡發送重設郵件
-            </a>
-        </div>
-        
-    </form>
+            <div class="form-group">
+                <label for="password">密碼</label>
+                <input id="password" type="password" formControlName="password">
+            </div>
+
+            <button type="submit" [disabled]="isLoading">
+                @if (isLoading) {
+                    <span class="loading-content">
+                        <div class="spinner"></div> 正在登入...
+                    </span>
+                } @else if (errorMessage) {
+                    <span class="fail-text">
+                        登入失敗，請重試
+                    </span>
+                } @else {
+                    <span>
+                        登入
+                    </span>
+                }
+            </button>
+            
+            @if (showLoginFailPrompt) {
+                <div class="fail-prompt-box">
+                    <p>💡 帳號或密碼錯誤。需要重設密碼嗎？</p>
+                    <a (click)="toggleResetForm()" class="app-link">
+                        點擊這裡發送重設郵件
+                    </a>
+                </div>
+            }
+            
+        </form>
+    }
     
-    <!-- 3. 註冊連結 -->
     <p class="link-area">
         還沒有帳號？ <a [routerLink]="['/auth/signup']" class="app-link">立即註冊</a>
     </p>
