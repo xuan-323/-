@@ -1,85 +1,77 @@
-<div class="login-container">
+<!-- 使用 Tailwind CSS 實現簡潔、置中且具備大圓角的 PWA 風格登入頁面 -->
+<div class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8">
     
-    @if (errorMessage) {
-        <div class="error-message">{{ errorMessage }}</div>
-    }
-    @if (resetMessage) {
-        <div class="success-message">{{ resetMessage }}</div>
-    }
-    
-    <h1>🍽️ 會員登入</h1>
-    <p class="subtitle">歡迎回來，讓我們找到你的飯搭子！</p>
-    
-    <p class="forgot-password-area">
-        <a (click)="toggleResetForm()" class="app-link">
-            @if (!showResetForm) {
-                <span>忘記密碼？</span>
-            } @else {
-                <span>返回登入</span>
-            }
-        </a>
-    </p>
-
-    @if (showResetForm) {
-        <div class="reset-form-box">
-            <p>請輸入您的信箱，我們將發送重設連結：</p>
-            
-            <input id="email" type="email" formControlName="email">
-            
-            <button (click)="onForgotPassword()" [disabled]="isLoading">
-                @if (isLoading) {
-                    <span class="loading-content">
-                        <div class="spinner"></div> 正在發送...
-                    </span>
-                } @else {
-                    <span>
-                        發送重設郵件
-                    </span>
-                }
-            </button>
+    <!-- 登入卡片 (大量留白, 柔和陰影) -->
+    <div class="w-full max-w-md bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-xl border border-white/50 login-card">
+        
+        <!-- LOGO & App Name -->
+        <div class="text-center mb-10">
+            <!-- LOGO Placeholder (粉橘色圓形) -->
+            <div class="w-20 h-20 bg-gradient-to-tr from-pink-400 to-orange-400 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-pink-200">
+                <i class="fas fa-heart text-3xl text-white"></i> 
+            </div>
+            <h1 class="text-3xl font-extrabold text-gray-800 tracking-wider">食伴 Match</h1>
+            <p class="text-pink-500 text-sm mt-1">遇見美食，更遇見你</p>
         </div>
-    } @else {
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-            <div class="form-group">
-                <label for="email">電子郵件</label>
-                <input id="email" type="email" formControlName="email">
-            </div>
+        <!-- 標題 -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">登入</h2>
 
-            <div class="form-group">
-                <label for="password">密碼</label>
-                <input id="password" type="password" formControlName="password">
-            </div>
-
-            <button type="submit" [disabled]="isLoading">
-                @if (isLoading) {
-                    <span class="loading-content">
-                        <div class="spinner"></div> 正在登入...
-                    </span>
-                } @else if (errorMessage) {
-                    <span class="fail-text">
-                        登入失敗，請重試
-                    </span>
-                } @else {
-                    <span>
-                        登入
-                    </span>
-                }
-            </button>
-            
-            @if (showLoginFailPrompt) {
-                <div class="fail-prompt-box">
-                    <p>💡 帳號或密碼錯誤。需要重設密碼嗎？</p>
-                    <a (click)="toggleResetForm()" class="app-link">
-                        點擊這裡發送重設郵件
-                    </a>
+        <!-- 登入表單 -->
+        <form (ngSubmit)="login()">
+            <div class="space-y-6">
+                
+                <!-- Email 輸入框 -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-600 mb-2 ml-1">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email"
+                        [(ngModel)]="email"
+                        required
+                        placeholder="請輸入您的 Email"
+                        class="w-full py-3 px-6 bg-gray-50 border border-gray-200 rounded-[1.5rem] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all text-gray-700 login-input"
+                    >
                 </div>
-            }
-            
+                
+                <!-- 密碼 輸入框 -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-600 mb-2 ml-1">密碼</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        [(ngModel)]="password"
+                        required
+                        placeholder="••••••••"
+                        class="w-full py-3 px-6 bg-gray-50 border border-gray-200 rounded-[1.5rem] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all text-gray-700 login-input"
+                    >
+                </div>
+
+                <!-- 登入按鈕 -->
+                <button 
+                    type="submit" 
+                    [disabled]="isLoggingIn"
+                    class="w-full py-4 mt-6 font-bold text-lg text-white rounded-[1.5rem] shadow-lg transition-all duration-300 transform 
+                           bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 hover:scale-[1.01] active:scale-[0.98] 
+                           disabled:opacity-50 disabled:cursor-not-allowed login-button"
+                >
+                    @if (isLoggingIn) {
+                        登入中...
+                    } @else {
+                        立即登入
+                    }
+                </button>
+            </div>
         </form>
-    }
-    
-    <p class="link-area">
-        還沒有帳號？ <a [routerLink]="['/auth/signup']" class="app-link">立即註冊</a>
-    </p>
+
+        <!-- 註冊連結 -->
+        <div class="text-center mt-8">
+            <a routerLink="/register" class="text-sm font-medium text-pink-500 hover:text-pink-600 transition-colors">
+                還沒有帳號？點此註冊
+            </a>
+        </div>
+
+    </div>
 </div>

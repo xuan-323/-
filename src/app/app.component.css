@@ -1,0 +1,29 @@
+/* --------------------------------------------- */
+/* 全域 PWA / App 容器樣式 */
+/* --------------------------------------------- */
+
+/* 設置柔和的橘色 + 粉色 + 米白漸層背景 */
+.app-container {
+    min-height: 100vh;
+    /* 柔和的暖色漸層 */
+    background: linear-gradient(135deg, 
+        #FFFBEB 0%,      /* 奶油白 */
+        #FFEBEB 40%,      /* 淡粉色 */
+        #FFD7A3 100%     /* 柔和橘色 */
+    );
+    font-family: 'Inter', sans-serif;
+    /* 確保在行動裝置上提供 App 般的體驗 */
+    padding: 0;
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+/* 確保所有文字都清晰可見 */
+body {
+    color: #333;
+}
+
+/* 統一的大圓角風格 */
+button, input, .card {
+    border-radius: 1.5rem; /* 大圓角 */
+}
