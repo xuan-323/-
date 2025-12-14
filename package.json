@@ -1,130 +1,64 @@
 {
-  
   "name": "my-first-angular-app",
-  
   "version": "0.0.0",
-  
   "scripts": {
-  
-    
-  "ng": "ng",
-  
-    
-  "start": "ng serve",
-  
-    
-  "build": "ng build",
-  
-    
-  "watch": "ng build --watch --configuration development",
-  
-    
-  "test": "ng test"
-  
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
   },
-  
   "prettier": {
-  
-    
-  "printWidth": 100,
-  
-    
-  "singleQuote": true,
-  
-    
-  "overrides": [
-  
-    
-    
-  {
-  
-    
-    
-    
-  "files": "*.html",
-  
-    
-    
-    
-  "options": {
-  
-    
-    
-    
-    
-  "parser": "angular"
-  
-    
-    
-    
-  }
-  
-    
-    
-  }
-  
-    
-  ]
-  
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
   },
-  
   "private": true,
-  
   "packageManager": "npm@11.6.2",
-  
   "dependencies": {
-  
-    
-  "@angular/common": "^21.0.0",
-  
-    
-  "@angular/compiler": "^21.0.0",
-  
-    
-  "@angular/core": "^21.0.0",
-  
-    
-  "@angular/forms": "^21.0.0",
-  
-    
-  "@angular/platform-browser": "^21.0.0",
-  
-    
-  "@angular/router": "^21.0.0",
-  
-    
-  "@supabase/supabase-js": "^2.86.0",
-  
-    
-  "rxjs": "~7.8.0",
-  
-    
-  "tslib": "^2.3.0"
-  
+    "@angular/cdk": "^21.0.3",
+    "@angular/common": "^21.0.5",
+    "@angular/compiler": "^21.0.5",
+    "@angular/core": "^21.0.5",
+    "@angular/forms": "^21.0.5",
+    "@angular/material": "^21.0.3",
+    "@angular/platform-browser": "^21.0.5",
+    "@angular/router": "^21.0.5",
+    "@supabase/supabase-js": "^2.86.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
   },
-  
   "devDependencies": {
-  
-    
-  "@angular/build": "^21.0.0",
-  
-    
-  "@angular/cli": "^21.0.0",
-  
-    
-  "@angular/compiler-cli": "^21.0.0",
-  
-    
-  "@types/jasmine": "^5.1.13",
-  
-    
-  "jsdom": "^27.1.0",
-  
-    
-  "typescript": "~5.9.2",
-  
-    
-  "vitest": "^4.0.8"
-  
-  }
+    "@angular/build": "^21.0.3",
+    "@angular/cli": "^21.0.3",
+    "@angular/compiler-cli": "^21.0.5",
+    "@types/jasmine": "^5.1.13",
+    "autoprefixer": "^10.4.22",
+    "jsdom": "^27.1.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.3.3",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  },
+  "description": "This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.0.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xuan-323/-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/xuan-323/-/issues"
+  },
+  "homepage": "https://github.com/xuan-323/-#readme"
 }

@@ -1,128 +1,50 @@
-.login-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
-    text-align: center;
-    font-family: Inter, sans-serif;
+/* Custom Theme Overrides for "食伴 Match" Branding */
+/* 注意：這些顏色通常會定義在 Tailwind config 或基礎 CSS 中，
+         但我們在此處保留以匹配原始程式碼的邏輯。 */
+
+.bg-brand-cream { 
+    background-color: #FFFDF5; 
 }
-h1 {
-    color: #FF577F; /* 主色調 */
-    margin-bottom: 5px;
+.text-brand-brown { 
+    color: #5D4037; 
 }
-.subtitle {
-    color: #666;
-    margin-bottom: 20px;
+.text-brand-brown-light { 
+    color: #8D6E63; 
 }
-.form-group {
-    text-align: left;
-    margin-bottom: 15px;
+.border-brand-brown-light { 
+    border-color: #EFEBE9; 
 }
-input[type="email"],
-input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box;
+/* 此處應為 Tailwind 設定，但在自訂樣式中實現 */
+.focus-ring-orange { 
+    --tw-ring-color: #FF9F43; 
+    border-color: #FF9F43; 
+} 
+.bg-brand-orange { 
+    background-color: #FF9F43; 
+}
+.hover-bg-brand-orange-dark:hover { 
+    background-color: #FF8F23; 
+}
+.text-brand-orange { 
+    color: #FF9F43; 
 }
 
-/* --- 核心修正: App 藍色連結樣式 (忘記密碼/立即註冊) --- */
-.app-link {
-    color: #4A86E8; /* 標準藍色 */
-    text-decoration: underline; /* 確保有底線 */
-    cursor: pointer;
-    font-size: 14px;
-    transition: color 0.2s;
+/* Smooth illustration animations */
+@keyframes float {
+    0% { 
+        transform: translateY(0px) rotate(0deg); 
+    }
+    50% { 
+        transform: translateY(-5px) rotate(2deg); 
+    }
+    100% { 
+        transform: translateY(0px) rotate(0deg); 
+    }
 }
-.app-link:hover {
-    color: #3d6acc;
+.animate-float {
+    animation: float 4s ease-in-out infinite;
 }
-
-.forgot-password-area, .link-area {
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-/* --- 登入按鈕與 Spinner 樣式 --- */
-button[type="submit"] {
-    min-width: 150px; 
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    background-color: #FF577F;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 20px;
-}
-button[type="submit"]:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-/* 失敗狀態的按鈕樣式 */
-button[type="submit"]:has(.fail-text) {
-    background-color: #CC0000; 
-}
-
-/* Spinner 動畫 */
-.loading-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-.spinner {
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid white;
-    border-radius: 50%;
-    width: 16px;
-    height: 16px;
-    animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* --- 訊息和提示框樣式 --- */
-.error-message {
-    color: white;
-    background-color: #cc0000; /* 紅色背景 */
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    font-weight: bold;
-}
-.success-message {
-    color: green;
-    background-color: #e0ffe0;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 15px;
-}
-.reset-form-box {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-}
-/* 登入失敗提示框樣式 */
-.fail-prompt-box {
-    margin-top: 15px;
-    padding: 15px;
-    border: 1px solid #ff9999;
-    border-radius: 8px;
-    background-color: #fff0f0;
-    text-align: center;
-}
-.fail-prompt-box p {
-    margin: 0 0 10px 0;
-    color: #cc0000;
-    font-weight: bold;
+.animate-float-delayed {
+    animation: float 5s ease-in-out infinite;
+    animation-delay: 1s;
 }

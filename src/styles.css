@@ -1,1 +1,40 @@
-/* You can add global styles to this file, and also import other style files */
+/* 1. Angular Material Theme Import - 必須放在所有其他 At-Rule 之前 */
+@import "./custom-theme.scss";
+
+/* 2. Tailwind CSS Core Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* ------------------------------------------------ */
+/* 自定義 CSS/動畫 (適用於整個 Angular 應用程式) */
+/* ------------------------------------------------ */
+
+/* Smooth illustration animations */
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* 應用動畫到全域類別 */
+.animate-float {
+    animation: float 4s ease-in-out infinite;
+}
+.animate-float-delayed {
+    animation: float 5s ease-in-out infinite;
+    animation-delay: 1s;
+}
+
+/* 額外自訂的樣式 (如果需要) */
+.hover-bg-brand-orange-dark:hover { 
+    background-color: #FF8F23; 
+}
+html, body { height: 100%; }
+html {
+  font-size: 16px; 
+}
+
+body {
+  margin: 0;
+  font-family: 'Be Vietnam Pro', 'Noto Sans TC', sans-serif;
+}

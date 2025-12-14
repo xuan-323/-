@@ -1,77 +1,109 @@
-<!-- 使用 Tailwind CSS 實現簡潔、置中且具備大圓角的 PWA 風格登入頁面 -->
-<div class="flex flex-col items-center justify-center min-h-screen p-4 sm:p-8">
-    
-    <!-- 登入卡片 (大量留白, 柔和陰影) -->
-    <div class="w-full max-w-md bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-xl border border-white/50 login-card">
-        
-        <!-- LOGO & App Name -->
-        <div class="text-center mb-10">
-            <!-- LOGO Placeholder (粉橘色圓形) -->
-            <div class="w-20 h-20 bg-gradient-to-tr from-pink-400 to-orange-400 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-pink-200">
-                <i class="fas fa-heart text-3xl text-white"></i> 
-            </div>
-            <h1 class="text-3xl font-extrabold text-gray-800 tracking-wider">食伴 Match</h1>
-            <p class="text-pink-500 text-sm mt-1">遇見美食，更遇見你</p>
-        </div>
+<div class="bg-brand-cream min-h-screen flex items-center justify-center font-display antialiased p-4">
+  <div class="w-full max-w-[400px] bg-white rounded-3xl shadow-[0_12px_40px_-8px_rgba(93,64,55,0.08)] overflow-hidden flex flex-col relative border border-[#F5F5F5]">
 
-        <!-- 標題 -->
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">登入</h2>
+    <!-- Header -->
+    <div class="pt-10 pb-6 px-8 flex flex-col items-center justify-center relative bg-gradient-to-b from-[#FFF8F0] to-white">
+      <div class="absolute top-8 left-10 text-brand-orange opacity-80 animate-float">
+        <span class="material-symbols-outlined text-4xl">ramen_dining</span>
+      </div>
+      <div class="absolute top-6 right-10 text-brand-orange opacity-60 animate-float-delayed">
+        <span class="material-symbols-outlined text-3xl">chat_bubble</span>
+      </div>
+      <div class="absolute top-20 right-8 text-brand-brown-light opacity-40 transform rotate-12">
+        <span class="material-symbols-outlined text-2xl">location_on</span>
+      </div>
 
-        <!-- 登入表單 -->
-        <form (ngSubmit)="login()">
-            <div class="space-y-6">
-                
-                <!-- Email 輸入框 -->
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-600 mb-2 ml-1">Email</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email"
-                        [(ngModel)]="email"
-                        required
-                        placeholder="請輸入您的 Email"
-                        class="w-full py-3 px-6 bg-gray-50 border border-gray-200 rounded-[1.5rem] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all text-gray-700 login-input"
-                    >
-                </div>
-                
-                <!-- 密碼 輸入框 -->
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-600 mb-2 ml-1">密碼</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password"
-                        [(ngModel)]="password"
-                        required
-                        placeholder="••••••••"
-                        class="w-full py-3 px-6 bg-gray-50 border border-gray-200 rounded-[1.5rem] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-pink-200 focus:border-pink-400 transition-all text-gray-700 login-input"
-                    >
-                </div>
+      <div class="w-24 h-24 mb-5 rounded-full bg-white shadow-sm border border-brand-brown-light flex items-center justify-center z-10">
+        <span class="material-symbols-outlined text-brand-orange text-[3.5rem]">lunch_dining</span>
+      </div>
 
-                <!-- 登入按鈕 -->
-                <button 
-                    type="submit" 
-                    [disabled]="isLoggingIn"
-                    class="w-full py-4 mt-6 font-bold text-lg text-white rounded-[1.5rem] shadow-lg transition-all duration-300 transform 
-                           bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 hover:scale-[1.01] active:scale-[0.98] 
-                           disabled:opacity-50 disabled:cursor-not-allowed login-button"
-                >
-                    @if (isLoggingIn) {
-                        登入中...
-                    } @else {
-                        立即登入
-                    }
-                </button>
-            </div>
-        </form>
-
-        <!-- 註冊連結 -->
-        <div class="text-center mt-8">
-            <a routerLink="/register" class="text-sm font-medium text-pink-500 hover:text-pink-600 transition-colors">
-                還沒有帳號？點此註冊
-            </a>
-        </div>
-
+      <div class="flex flex-col gap-1 items-center z-10">
+        <p class="text-brand-brown text-[2rem] font-black leading-tight tracking-[-0.033em]">食伴 Match</p>
+        <p class="text-brand-brown-light text-base font-medium leading-normal">Connecting food lovers!</p>
+      </div>
     </div>
+
+    <!-- Form -->
+    <form class="px-8 pb-10 pt-2 flex flex-col gap-5 bg-white"
+          (ngSubmit)="handleLogin()">
+
+      <!-- Email -->
+      <div class="flex flex-col gap-1.5">
+        <div class="relative flex items-center group">
+          <span class="material-symbols-outlined absolute left-4 text-[#BCAAA4] group-focus-within:text-brand-orange transition-colors">
+            mail
+          </span>
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            required
+            placeholder="Email"
+            class="form-input flex w-full rounded-2xl border border-brand-brown-light bg-white h-14 pl-12 pr-4 text-brand-brown placeholder-[#BCAAA4] text-base focus:outline-0 focus:ring-2 focus-ring-orange transition-all shadow-sm"
+          />
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="flex flex-col gap-1.5">
+        <div class="relative flex items-center group">
+          <span class="material-symbols-outlined absolute left-4 text-[#BCAAA4] group-focus-within:text-brand-orange transition-colors">
+            lock
+          </span>
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            name="password"
+            [(ngModel)]="password"
+            required
+            placeholder="密碼 Password"
+            class="form-input flex w-full rounded-2xl border border-brand-brown-light bg-white h-14 pl-12 pr-12 text-brand-brown placeholder-[#BCAAA4] text-base focus:outline-0 focus:ring-2 focus-ring-orange transition-all shadow-sm"
+          />
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            class="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center text-[#BCAAA4] hover:text-brand-brown transition-colors cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-[20px]">
+              {{ showPassword ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+
+        <!-- Forgot password -->
+        <div class="flex justify-end mt-1">
+          <button
+            type="button"
+            (click)="forgotPassword()"
+            class="text-brand-brown-light hover:text-brand-orange text-sm font-bold tracking-wide transition-colors cursor-pointer"
+          >
+            <span class="truncate">忘記密碼？</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Login -->
+      <div class="pt-2">
+        <button
+          type="submit"
+          class="w-full bg-brand-orange hover-bg-brand-orange-dark text-white font-bold h-12 rounded-2xl shadow-md hover:shadow-lg transition-all transform active:scale-[0.98] text-lg flex items-center justify-center gap-2"
+        >
+          <span>登入</span>
+        </button>
+      </div>
+
+      <!-- Register -->
+      <div class="mt-2 flex justify-center">
+        <button
+          type="button"
+          (click)="navigateToRegister()"
+          class="text-brand-brown-light text-sm font-medium hover:text-brand-brown transition-colors"
+        >
+          還沒有帳號？
+          <span class="text-brand-orange font-bold underline decoration-2 decoration-transparent hover:decoration-brand-orange transition-all">
+            註冊
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

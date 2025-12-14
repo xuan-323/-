@@ -5,29 +5,25 @@
     "packageManager": "npm"
   },
   "newProjectRoot": "projects",
-  "projects": {
-    "my-first-angular-app": {
-      "projectType": "application",
-      "schematics": {},
-      "root": "",
-      "sourceRoot": "src",
-      "prefix": "app",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:application",
-          "options": {
-            "browser": "src/main.ts",
-            "tsConfig": "tsconfig.app.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "src/styles.css"
-            ]
-          },
+"projects": {
+  "my-first-angular-app": {
+    "projectType": "application",
+    "schematics": {},
+    "root": "",                     
+    "sourceRoot": "src",     
+    "prefix": "app",
+    "architect": {
+      "build": {
+        "builder": "@angular/build:application",
+        "options": {
+          "browser": "src/main.ts",  
+          "tsConfig": "tsconfig.app.json",
+        
+          "styles": [
+            "src/custom-theme.scss",
+            "src/styles.css"
+          ]
+        },
           "configurations": {
             "production": {
               "budgets": [

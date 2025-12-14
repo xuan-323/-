@@ -1,7 +1,10 @@
-// src/main.ts
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { AppComponent } from './app/app'; // *** 假設您的主元件在 app.ts 中，且名為 AppComponent ***
+import { provideRouter } from '@angular/router';
+import { AppComponent } from './app/app.component';
+import { routes } from './app/app.routes'; // ✅ 用真正的 routes
 
-bootstrapApplication(AppComponent, appConfig)
-  .catch((err) => console.error(err));
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideRouter(routes),
+  ],
+}).catch(err => console.error(err));

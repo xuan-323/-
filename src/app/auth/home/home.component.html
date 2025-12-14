@@ -1,0 +1,90 @@
+<div class="bg-background-light min-h-screen flex items-center justify-center font-display antialiased text-text-brown">
+
+  <!-- Mobile Wrapper -->
+  <div class="relative w-full max-w-[414px] h-[850px] max-h-[100vh] bg-background-light shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] rounded-[2.5rem] overflow-hidden flex flex-col">
+
+    <!-- Header -->
+    <header class="flex items-center justify-center pt-8 pb-4 px-6 relative">
+      <div class="flex items-center gap-2 text-primary">
+        <span class="material-symbols-outlined text-[28px]">restaurant</span>
+        <h1 class="text-xl font-bold tracking-tight text-text-brown">
+          食伴 Match
+        </h1>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto px-6 pb-8">
+
+      <!-- Title -->
+      <div class="flex flex-col gap-2 mt-4 mb-8 text-center">
+        <h2 class="text-3xl font-black leading-tight tracking-tight">
+          今天想<br />怎麼吃？
+        </h2>
+        <p class="text-text-brown-light font-medium text-sm">
+          選一個，我們幫你安排
+        </p>
+      </div>
+
+      <!-- Cards -->
+      <div class="flex flex-col gap-6">
+
+        <!-- 找飯友 -->
+        <button
+          class="group w-full bg-white rounded-xl shadow-card hover:shadow-soft transition-all transform hover:-translate-y-1 overflow-hidden text-left"
+          (click)="goSocial()"
+        >
+          <div class="h-40 bg-[#FFF5EB] flex items-center justify-center">
+            <span class="material-symbols-outlined text-6xl text-primary">
+              group
+            </span>
+          </div>
+
+          <div class="p-6 flex justify-between items-center">
+            <div>
+              <h3 class="text-xl font-bold mb-1 group-hover:text-primary">
+                找飯友一起吃
+              </h3>
+              <p class="text-sm text-text-brown-light">
+                配對一起吃飯的夥伴
+              </p>
+            </div>
+
+            <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition">
+              <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+          </div>
+        </button>
+
+        <!-- 自己吃 -->
+        <button
+          class="group w-full bg-white rounded-xl shadow-card hover:shadow-soft transition-all transform hover:-translate-y-1 overflow-hidden text-left"
+          (click)="goSolo()"
+        >
+          <div class="h-40 bg-[#FFF5EB] flex items-center justify-center">
+            <span class="material-symbols-outlined text-6xl text-primary">
+              person
+            </span>
+          </div>
+
+          <div class="p-6 flex justify-between items-center">
+            <div>
+              <h3 class="text-xl font-bold mb-1 group-hover:text-primary">
+                自己吃
+              </h3>
+              <p class="text-sm text-text-brown-light">
+                幫你推薦適合的餐廳
+              </p>
+            </div>
+
+            <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition">
+              <span class="material-symbols-outlined">arrow_forward</span>
+            </div>
+          </div>
+        </button>
+
+      </div>
+
+    </main>
+  </div>
+</div>
