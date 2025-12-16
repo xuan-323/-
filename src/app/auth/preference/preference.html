@@ -1,0 +1,17 @@
+<div class="pref-container">
+  <h2>歡迎！請選擇您的口味偏好</h2>
+  <p>選取至少一個喜歡的類別</p>
+
+  <div class="tag-group">
+    <button
+      *ngFor="let t of tags"
+      (click)="toggleTag(t)"
+      [class.selected]="selectedTags.includes(t)">
+      {{ t }}
+    </button>
+  </div>
+
+  <button class="next-btn" [disabled]="selectedTags.length === 0" (click)="onSave()">
+    完成設定
+  </button>
+</div>
