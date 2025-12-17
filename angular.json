@@ -3,7 +3,11 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
+<<<<<<< HEAD
     "analytics": "cb850bf8-3784-449e-9edc-002f7e174b08"
+=======
+    "analytics": "43996a94-ce95-48d2-8c99-c30150eb7f0d"
+>>>>>>> e5944ab (temp: save changes before switching branch)
   },
   "newProjectRoot": "projects",
 "projects": {
