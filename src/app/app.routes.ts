@@ -35,6 +35,15 @@ export const routes: Routes = [
         .then(m => m.WelcomeComponent),
   },
 
+ // ===== Preference（偏好 / 自己吃）=====
+{
+  path: 'auth/preference',
+  loadComponent: () =>
+    import('./auth/preference/preference')
+      .then(m => m.PreferenceComponent),
+},
+
+
   // ===== Home（需要登入）=====
   {
   path: 'home',

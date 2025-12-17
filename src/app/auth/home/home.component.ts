@@ -20,7 +20,7 @@ export class HomeComponent {
 
   // 自己吃
   goSolo(): void {
-    alert('自己吃：之後會推薦餐廳');
+   this.router.navigate(['/auth/preference']);
     // this.router.navigate(['/solo']);
   }
 }
