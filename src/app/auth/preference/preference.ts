@@ -1,33 +1,52 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common'; // ✅ 一定要
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-preference',
-  templateUrl: './preference.html', // 確保這裡檔名與你的 html 一致
-  styleUrls: ['./preference.css']    // 確保這裡檔名與你的 css 一致
+  standalone: true,
+  imports: [CommonModule], // ✅ 關鍵就在這一行
+  templateUrl: './preference.html',
+  styleUrls: ['./preference.css'],
 })
 export class PreferenceComponent {
-  // 定義口味標籤
-  tags: string[] = ['日式', '韓式', '台式', '火鍋', '義式', '美式', '甜點'];
-  // 紀錄使用者選取的標籤
+
+  tags: string[] = [
+    '日式', '韓式', '台式', '火鍋',
+    '義式', '美式', '甜點', '不知道'
+  ];
+
+  iconMap: Record<string, string> = {
+    日式: '🍣',
+    韓式: '🍜',
+    台式: '🍚',
+    火鍋: '🍲',
+    義式: '🍕',
+    美式: '🍔',
+    甜點: '🍰',
+    不知道: '❓',
+  };
+
   selectedTags: string[] = [];
 
   constructor(private router: Router) {}
 
-  // 點擊標籤：如果選過就移除，沒選過就加入
   toggleTag(tag: string) {
-    const index = this.selectedTags.indexOf(tag);
-    if (index > -1) {
-      this.selectedTags.splice(index, 1);
+    if (tag === '不知道') {
+      this.selectedTags = ['不知道'];
+      return;
+    }
+
+    this.selectedTags = this.selectedTags.filter(t => t !== '不知道');
+
+    if (this.selectedTags.includes(tag)) {
+      this.selectedTags = this.selectedTags.filter(t => t !== tag);
     } else {
       this.selectedTags.push(tag);
     }
   }
 
-  // 按下「完成」後的動作
   onSave() {
-    console.log('使用者選擇的口味：', this.selectedTags);
-    // 導向註冊後的歡迎頁面（請確保你有這個路徑）
-    this.router.navigate(['/auth/welcome']);
+    console.log(this.selectedTags);
   }
 }
