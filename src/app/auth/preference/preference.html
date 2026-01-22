@@ -9,8 +9,8 @@
     <div
       class="tag-card"
       *ngFor="let tag of tags"
-      (click)="toggleTag(tag)"
-      [class.selected]="selectedTags.includes(tag)"
+      (click)="selectTag(tag)"
+      [class.selected]="selectedTag === tag"
     >
       <div class="tag-icon">
         {{ iconMap[tag] }}
@@ -25,7 +25,7 @@
   <!-- 完成設定 -->
   <button
     class="save-btn"
-    [disabled]="selectedTags.length === 0"
+    [disabled]="!selectedTag"
     (click)="onSave()"
   >
     完成設定

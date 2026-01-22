@@ -27,7 +27,7 @@ export const routes: Routes = [
         .then(m => m.UpdatePasswordComponent),
   },
 
-  // ===== Welcome（登入後第一頁，❌ 不要 Guard）=====
+  // ===== Welcome（登入後第一頁，不加 Guard）=====
   {
     path: 'welcome',
     loadComponent: () =>
@@ -35,25 +35,44 @@ export const routes: Routes = [
         .then(m => m.WelcomeComponent),
   },
 
- // ===== Preference（偏好 / 自己吃）=====
-{
-  path: 'auth/preference',
+  // ===== Preference（自己吃 / 選條件）=====
+  {
+    path: 'auth/preference',
+    loadComponent: () =>
+      import('./auth/preference/preference')
+        .then(m => m.PreferenceComponent),
+    canMatch: [authGuard],
+  },
+
+  //===== 自己吃 → 推薦結果頁 =====
+  {
+  path: 'solo/result',
   loadComponent: () =>
-    import('./auth/preference/preference')
-      .then(m => m.PreferenceComponent),
+    import('./auth/home/solo-result/solo-result')
+      .then(m => m.SoloResultComponent),
+  canMatch: [authGuard],
 },
 
 
-  // ===== Home（需要登入）=====
-  {
-  path: 'home',
+  // ===== 自己吃 → 完成頁 =====
+{
+  path: 'auth/solo-finish',
   loadComponent: () =>
-    import('./auth/home/home.component')
-      .then(m => m.HomeComponent),
-}
-,
+    import('./auth/home/solo-finish/solo-finish')
+      .then(m => m.SoloFinishComponent),
+  canMatch: [authGuard],
+},
 
-  // ===== Profile（需要登入）=====
+  // ===== Home =====
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./auth/home/home.component')
+        .then(m => m.HomeComponent),
+    canMatch: [authGuard],
+  },
+
+  // ===== Profile =====
   {
     path: 'profile',
     loadComponent: () =>

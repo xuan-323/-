@@ -1,0 +1,156 @@
+/* =========================
+   整頁版面（關鍵）
+========================= */
+.page {
+  min-height: 100vh;                 /* 撐滿整個畫面 */
+  display: flex;
+  flex-direction: column;            /* 垂直排列 */
+  align-items: center;
+
+  background: linear-gradient(180deg, #f7cfd4, #f6b6c1);
+  padding: 40px 24px;
+  box-sizing: border-box;
+}
+
+/* =========================
+   標題區（最上方）
+========================= */
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.main-title {
+  font-size: 42px;                   /* 自己吃：大 */
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin: 0 0 6px;
+}
+
+.sub-title {
+  font-size: 20px;
+  font-weight: 400;
+  color: #333;
+}
+
+/* =========================
+   卡片區（中間）
+========================= */
+.cards {
+  width: 100%;
+  max-width: 1100px;
+
+  display: flex;
+  justify-content: center;            /* 整組置中 */
+  gap: 32px;
+
+  margin: 0 auto;
+}
+
+/* ===== 卡片區：往下移 ===== */
+.cards {
+  width: 100%;
+  max-width: 1000px;
+
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+
+  margin-top: 150px;     /* 👈 關鍵：跟副標拉開 */
+  margin-bottom: -96px;  /* 👈 跟按鈕保持距離 */
+}
+
+/* 單張卡片 */
+.card {
+  flex: 1;
+  max-width: 300px;
+  height: 260px;
+
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  padding: 16px;
+  box-sizing: border-box;
+
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* hover = 選擇感 */
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* ✅ 被選中 */
+.card.selected {
+  border: 3px solid #fff1f1ff;
+  box-shadow: 0 20px 40px rgba(62, 56, 56, 0.92);
+  transform: translateY(-8px);
+}
+
+/* 卡片內副文字 */
+.card-sub {
+  font-size: 14px;
+  font-weight: 400;
+  color: #666;
+  margin-top: 6px;
+}
+
+/* =========================
+   按鈕區（只動這裡）
+========================= */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+
+  margin-top: 250px;     /* 與卡片距離 */
+  margin-bottom: 100px;  /* 👈 關鍵：控制在你圈的高度，不貼底 */
+}
+
+/* 共用按鈕樣式 */
+.btn {
+  padding: 14px 36px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+
+  border: none;
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* hover 選擇感 */
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* 次要：換一換 */
+.btn.secondary {
+  background: #ffffff;
+  color: #333;
+}
+
+/* 主要：完成 */
+.btn.primary {
+  background: #000000;
+  color: #ffffff;
+}
