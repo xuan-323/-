@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
-  // 預設導到登入
   { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
 
   // ===== Auth =====
@@ -12,14 +11,12 @@ export const routes: Routes = [
       import('./auth/login/login.component')
         .then(m => m.LoginComponent),
   },
-
   {
     path: 'auth/signup',
     loadComponent: () =>
       import('./auth/signup/signup.component')
         .then(m => m.SignupComponent),
   },
-
   {
     path: 'auth/update-password',
     loadComponent: () =>
@@ -27,7 +24,7 @@ export const routes: Routes = [
         .then(m => m.UpdatePasswordComponent),
   },
 
-  // ===== Welcome（登入後第一頁，不加 Guard）=====
+  // ===== Welcome =====
   {
     path: 'welcome',
     loadComponent: () =>
@@ -35,7 +32,16 @@ export const routes: Routes = [
         .then(m => m.WelcomeComponent),
   },
 
-  // ===== Preference（自己吃 / 選條件）=====
+  // ===== MBTI（登入後第一步）=====
+  {
+    path: 'mbti',
+    loadComponent: () =>
+      import('./auth/mbti/mbti')
+        .then(m => m.MbtiComponent),
+    canMatch: [authGuard],
+  },
+
+  // ===== Preference =====
   {
     path: 'auth/preference',
     loadComponent: () =>
@@ -44,24 +50,35 @@ export const routes: Routes = [
     canMatch: [authGuard],
   },
 
-  //===== 自己吃 → 推薦結果頁 =====
+  // ===== 自己吃 =====
   {
-  path: 'solo/result',
-  loadComponent: () =>
-    import('./auth/home/solo-result/solo-result')
-      .then(m => m.SoloResultComponent),
-  canMatch: [authGuard],
-},
+    path: 'solo/result',
+    loadComponent: () =>
+      import('./auth/home/solo-result/solo-result')
+        .then(m => m.SoloResultComponent),
+    canMatch: [authGuard],
+  },
+  {
+    path: 'auth/solo-finish',
+    loadComponent: () =>
+      import('./auth/home/solo-finish/solo-finish')
+        .then(m => m.SoloFinishComponent),
+    canMatch: [authGuard],
+  },
 
-
-  // ===== 自己吃 → 完成頁 =====
-{
-  path: 'auth/solo-finish',
-  loadComponent: () =>
-    import('./auth/home/solo-finish/solo-finish')
-      .then(m => m.SoloFinishComponent),
-  canMatch: [authGuard],
-},
+  // ===== 找飯友 =====
+  {
+    path: 'friend/result',
+    loadComponent: () =>
+      import('./auth/home/friend-result/friend-result')
+        .then(m => m.FriendResultComponent),
+  },
+  {
+    path: 'friend/matching',
+    loadComponent: () =>
+      import('./auth/home/friend-matching/friend-matching')
+        .then(m => m.FriendMatchingComponent),
+  },
 
   // ===== Home =====
   {

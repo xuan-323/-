@@ -11,11 +11,19 @@ import { Router } from '@angular/router';
 })
 export class PreferenceComponent {
 
+  // ✅ 標籤清單
   tags: string[] = [
-    '日式', '韓式', '台式', '火鍋',
-    '義式', '美式', '甜點', '不知道'
+    '日式',
+    '韓式',
+    '台式',
+    '火鍋',
+    '義式',
+    '美式',
+    '甜點',
+    '不知道'
   ];
 
+  // ✅ 標籤 icon 對照
   iconMap: Record<string, string> = {
     日式: '🍣',
     韓式: '🍲',
@@ -27,22 +35,35 @@ export class PreferenceComponent {
     不知道: '❓',
   };
 
-  // ✅ 單選（只有一個）
+  // ✅ 單選（只會有一個）
   selectedTag: string | null = null;
 
   constructor(private router: Router) {}
 
-  // ✅ 點擊標籤：固定選中
+  // ✅ 點擊標籤 → 固定選中
   selectTag(tag: string) {
     this.selectedTag = tag;
   }
 
-  // ✅ 完成 → 前往自己吃結果頁
+  // ✅ 完成
   onSave() {
-    console.log('選擇的標籤:', this.selectedTag);
+    if (!this.selectedTag) return;
 
-    this.router.navigate(['/solo/result'], {
-      state: { tag: this.selectedTag }
-    });
+    // 🔑 從上一頁判斷模式（自己吃 / 找飯友）
+    const mode: 'solo' | 'friend' = history.state?.mode ?? 'solo';
+
+    console.log('模式:', mode, '選擇標籤:', this.selectedTag);
+
+    if (mode === 'friend') {
+      // 👉 找飯友流程
+      this.router.navigate(['/friend/result'], {
+        state: { tag: this.selectedTag }
+      });
+    } else {
+      // 👉 自己吃流程
+      this.router.navigate(['/solo/result'], {
+        state: { tag: this.selectedTag }
+      });
+    }
   }
 }

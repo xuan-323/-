@@ -12,15 +12,17 @@ export class HomeComponent {
 
   constructor(private router: Router) {}
 
-  // 找飯友
+  // ✅ 找飯友
   goSocial(): void {
-    alert('找飯友：之後會檢查是否完成個人資料');
-    // this.router.navigate(['/match']);
+    this.router.navigate(['/auth/preference'], {
+      state: { mode: 'friend' }
+    });
   }
 
-  // 自己吃
+  // ✅ 自己吃
   goSolo(): void {
-   this.router.navigate(['/auth/preference']);
-    // this.router.navigate(['/solo']);
+    this.router.navigate(['/auth/preference'], {
+      state: { mode: 'solo' }
+    });
   }
 }

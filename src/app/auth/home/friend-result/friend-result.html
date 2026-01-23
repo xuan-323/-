@@ -1,0 +1,51 @@
+<div class="page">
+
+  <h1 class="title">找飯友 🍻</h1>
+
+  <p class="subtitle">
+    你選擇的標籤：
+    <strong>{{ tag }}</strong>
+  </p>
+
+  <!-- 餐廳卡片（可選中） -->
+  <div
+    class="card"
+    [class.selected]="selected"
+    (click)="selectCard()"
+  >
+    <img [src]="restaurant.image" alt="restaurant" />
+
+    <div class="card-body">
+      <h3>{{ restaurant.name }}</h3>
+      <p class="distance">{{ restaurant.distance }} km</p>
+
+      <div class="tags">
+        <span *ngFor="let t of restaurant.tags">
+          #{{ t }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔘 按鈕區 -->
+  <div class="actions">
+    <!-- ① 換一換 -->
+    <button class="btn ghost" (click)="shuffle()">
+      🔄 換一換
+    </button>
+
+    <!-- ② 確定 -->
+    <button
+      class="btn primary"
+      [disabled]="!selected"
+      (click)="confirm()"
+    >
+      ✅ 確定
+    </button>
+  </div>
+
+  <p class="hint">
+    正在為你配對一起吃飯的夥伴中…
+  </p>
+
+</div>
