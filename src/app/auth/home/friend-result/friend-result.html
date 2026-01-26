@@ -2,14 +2,15 @@
 
   <h1 class="title">找飯友 🍻</h1>
 
-  <p class="subtitle">
-    你選擇的標籤：
-    <strong>{{ tag }}</strong>
+  <!-- 載入中 -->
+  <p class="subtitle" *ngIf="!restaurant">
+    正在幫你找適合的餐廳…
   </p>
 
-  <!-- 餐廳卡片（可選中） -->
+  <!-- 餐廳卡片 -->
   <div
     class="card"
+    *ngIf="restaurant"
     [class.selected]="selected"
     (click)="selectCard()"
   >
@@ -27,14 +28,12 @@
     </div>
   </div>
 
-  <!-- 🔘 按鈕區 -->
+  <!-- 按鈕區 -->
   <div class="actions">
-    <!-- ① 換一換 -->
     <button class="btn ghost" (click)="shuffle()">
       🔄 換一換
     </button>
 
-    <!-- ② 確定 -->
     <button
       class="btn primary"
       [disabled]="!selected"

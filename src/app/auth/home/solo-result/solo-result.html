@@ -1,11 +1,25 @@
 <!-- 標題區 -->
 <div class="header">
-  <h1 class="main-title">你選擇的標籤-</h1>
+  <h1 class="main-title">
+    你選擇的標籤：
+    <span *ngIf="selectedTag; else noTag">
+      {{ selectedTag }}
+    </span>
+  </h1>
   <p class="sub-title">推薦結果</p>
 </div>
 
+<ng-template #noTag>
+  <span>全部</span>
+</ng-template>
+
+<!-- 載入中 -->
+<p class="hint" *ngIf="restaurants.length === 0">
+  正在幫你找附近適合的餐廳…
+</p>
+
 <!-- 餐廳卡片區 -->
-<div class="cards">
+<div class="cards" *ngIf="restaurants.length > 0">
   <div
     class="card"
     *ngFor="let r of restaurants; let i = index"
@@ -21,17 +35,30 @@
 
       <!-- 標籤 -->
       <div class="tag-list">
-        <span class="tag" *ngFor="let t of r.tags">{{ t }}</span>
+        <span class="tag" *ngFor="let t of r.tags">
+          {{ t }}
+        </span>
       </div>
 
       <!-- 距離 -->
-      <p class="distance">距離 {{ r.distance }} km</p>
+      <p class="distance">
+        距離 {{ r.distance }} km
+      </p>
     </div>
   </div>
 </div>
 
 <!-- 底部按鈕 -->
 <div class="actions">
-  <button class="btn secondary" (click)="shuffle()">換一換</button>
-  <button class="btn primary" (click)="finish()">完成</button>
+  <button class="btn secondary" (click)="shuffle()">
+    換一換
+  </button>
+
+  <button
+    class="btn primary"
+    [disabled]="selectedIndex === null"
+    (click)="finish()"
+  >
+    完成
+  </button>
 </div>
