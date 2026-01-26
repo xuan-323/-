@@ -1,0 +1,29 @@
+<div class="page">
+
+  <!-- 標題區（置中最上） -->
+  <div class="header">
+    <h1 class="title">找飯友中 🤝</h1>
+    <p class="subtitle">也選擇「{{ tag }}」的 MBTI 飯友</p>
+  </div>
+
+  <!-- 卡片區 -->
+  <div class="cards">
+    <div
+      class="friend-card"
+      *ngFor="let f of candidates"
+      (click)="selectFriend(f)"
+      tabindex="0"
+    >
+      <img [src]="f.avatar" />
+      <h3>{{ f.name }}</h3>
+      <p class="mbti">{{ f.mbti }}</p>
+      <p class="intro">{{ f.intro }}</p>
+    </div>
+  </div>
+
+  <!-- 按鈕區 -->
+  <div class="actions">
+    <button class="shuffle" (click)="shuffle()">換一組</button>
+  </div>
+
+</div>

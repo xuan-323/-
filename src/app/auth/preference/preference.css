@@ -1,4 +1,4 @@
-/* 整體 */
+/* ===== 整體 ===== */
 .preference-container {
   min-height: 100vh;
   background: linear-gradient(#f6e3c8, #f2d3a2);
@@ -9,7 +9,7 @@
   font-family: 'Noto Sans TC', sans-serif;
 }
 
-/* 標題 */
+/* ===== 標題 ===== */
 .title-main {
   font-size: 36px;
   font-weight: 700;
@@ -22,26 +22,28 @@
   margin-bottom: 40px;
 }
 
-/* 標籤區 */
+/* ===== 標籤區 ===== */
 .tags-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 一排 4 個 */
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
 
   max-width: 600px;
   margin: 40px auto;
 
-  justify-items: center;   /* 每個卡片置中 */
+  justify-items: center;
   align-items: center;
 }
 
-/* 單一標籤卡 */
+/* ===== 單一標籤卡 ===== */
 .tag-card {
+  width: 120px;
   background: #fff;
   border-radius: 16px;
   padding: 20px 10px;
   text-align: center;
   cursor: pointer;
+
   transition: all 0.25s ease;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
 }
@@ -51,10 +53,14 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* 被選中 */
-.tag-card.active {
-  background: #ffb703;
-  color: #fff;
+/* ✅ 被選中（對齊 HTML 的 selected） */
+.tag-card.selected {
+  border: 3px solid #fff1f1ff;
+  box-shadow: 0 20px 40px rgba(62, 56, 56, 0.92);
+  background: #f8f8f8ff;
+  color: #070505ff;
+  transform: translateY(-6px) scale(1.08);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
 }
 
 /* 插圖 */
@@ -69,8 +75,9 @@
   font-weight: 600;
 }
 
-/* 完成按鈕 */
+/* ===== 完成按鈕 ===== */
 .save-btn {
+  margin-top: 40px;
   padding: 14px 40px;
   font-size: 18px;
   border-radius: 30px;
@@ -90,4 +97,3 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-

@@ -1,0 +1,23 @@
+<div class="page">
+  <h1 class="title">選擇你的 MBTI</h1>
+  <p class="subtitle">只需要選一次，之後可在個人資料修改</p>
+
+  <div class="grid">
+    <button
+      class="mbti-card"
+      *ngFor="let m of mbtis"
+      (click)="selectMbti(m)"
+      [class.active]="selectedMbti === m"
+    >
+      {{ m }}
+    </button>
+  </div>
+
+  <button
+    class="save"
+    [disabled]="!selectedMbti"
+    (click)="save()"
+  >
+    完成
+  </button>
+</div>
