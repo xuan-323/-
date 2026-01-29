@@ -18,7 +18,10 @@
 
     <div class="card-body">
       <h3>{{ restaurant.name }}</h3>
-      <p class="distance">{{ restaurant.distance }} km</p>
+
+      <p class="distance">
+        距離 {{ restaurant.distance }} km
+      </p>
 
       <div class="tags">
         <span *ngFor="let t of restaurant.tags">
@@ -43,7 +46,7 @@
     </button>
   </div>
 
-  <p class="hint">
+  <p class="hint" *ngIf="!selected">
     正在為你配對一起吃飯的夥伴中…
   </p>
 

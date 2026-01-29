@@ -1,18 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 
-// =============================
-// 餐廳型別
-// =============================
 type Restaurant = {
   name: string;
   image: string;
   tags: string[];
-  distance: number; // km
+  distance: number;
   lat?: number;
   lng?: number;
 };
@@ -25,111 +21,87 @@ type Restaurant = {
   styleUrls: ['./solo-result.css'],
 })
 export class SoloResultComponent implements OnInit {
+  private supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
 
-  constructor(private router: Router) {}
-
-  // 🔐 Supabase client
-  private supabase = createClient(
-    environment.supabaseUrl,
-    environment.supabaseAnonKey
-  );
-
-  // 後端回來的餐廳
   restaurants: Restaurant[] = [];
+  selectedIndex = 0;
+  errorMessage: string | null = null;
+  isLoading = false;
+  selectedTag: string | null = null; // ✅ 儲存標籤名稱
 
-  // 選中的卡片 index
-  selectedIndex: number | null = null;
+  constructor(private router: Router, private cdr: ChangeDetectorRef) {}
 
-  // 使用者選的標籤
-  selectedTag: string | null = null;
-
-  // =============================
-  // 初始化
-  // =============================
   ngOnInit(): void {
-    // 從前一頁接收標籤
+    // ✅ 從上一頁的 router state 取得 tag
     this.selectedTag = history.state?.tag ?? null;
-
-    // 呼叫後端
-    this.fetchRestaurantsFromBackend();
+    this.fetchRestaurants();
   }
 
-  // =============================
-  // 呼叫 Supabase Edge Function
-  // =============================
-  async fetchRestaurantsFromBackend() {
+  async fetchRestaurants() {
+    this.isLoading = true;
+    this.errorMessage = null;
+    this.restaurants = [];
+
     try {
-      // 1️⃣ 取得 session
       const { data: { session } } = await this.supabase.auth.getSession();
       if (!session) {
-        console.error('❌ 使用者尚未登入');
+        this.errorMessage = '請先登入。';
         return;
       }
 
-      // 2️⃣ 取得定位
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
-
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-
-      // 3️⃣ 呼叫 Edge Function
-      const res = await fetch(
-        `${environment.supabaseUrl}/functions/v1/google-restaurants`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            lat,
-            lng,
-            tag: this.selectedTag,
-            mode: 'solo'
-          })
-        }
+      const position = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 7000,
+          maximumAge: 0
+        })
       );
 
-      if (!res.ok) {
-        console.error('❌ 後端錯誤', await res.text());
-        return;
+      const res = await fetch(`${environment.supabaseUrl}/functions/v1/google-restaurants`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          tag: this.selectedTag, // ✅ 傳送標籤給後端
+          mode: 'solo'
+        }),
+      });
+
+      if (!res.ok) throw new Error('伺服器回應錯誤');
+
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        this.restaurants = data;
+        this.selectedIndex = 0;
+      } else {
+        this.errorMessage = `附近找不到關於「${this.selectedTag || '推薦'}」的餐廳 😢`;
       }
 
-      // 4️⃣ 保險處理：單筆 / 多筆都能顯示
-      const data = await res.json();
-      console.log('✅ 後端回來的資料:', data);
-
-      this.restaurants = Array.isArray(data) ? data : [data];
-
-    } catch (err) {
-      console.error('❌ 取得餐廳失敗', err);
+    } catch (err: any) {
+      console.error('❌ 抓取失敗：', err);
+      this.errorMessage = '無法取得資料，請檢查定位權限或 API 設定。';
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
-  // =============================
-  // UI 行為
-  // =============================
-  selectCard(index: number) {
-    this.selectedIndex = index;
-  }
+  selectCard(i: number) { this.selectedIndex = i; }
 
-  // 🔄 換一換 → 重新打後端
   shuffle() {
-    this.selectedIndex = null;
-    this.fetchRestaurantsFromBackend();
+    if (this.restaurants.length === 0) return;
+    this.selectedIndex = (this.selectedIndex + 1) % this.restaurants.length;
+    this.cdr.detectChanges();
   }
 
   finish() {
-    if (this.selectedIndex === null) {
-      return;
-    }
-
+    if (this.restaurants.length === 0) return;
     const restaurant = this.restaurants[this.selectedIndex];
-
-    this.router.navigate(['/auth/solo-finish'], {
-      state: { restaurant }
-    });
+    this.router.navigate(['/auth/solo-finish'], { state: { restaurant } });
   }
 }
