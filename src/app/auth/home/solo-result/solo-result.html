@@ -1,64 +1,28 @@
-<!-- 標題區 -->
-<div class="header">
-  <h1 class="main-title">
-    你選擇的標籤：
-    <span *ngIf="selectedTag; else noTag">
-      {{ selectedTag }}
-    </span>
-  </h1>
-  <p class="sub-title">推薦結果</p>
-</div>
+<div class="page">
+  <h1 class="main-title">自己吃 🍱</h1>
+  <p class="sub-title" *ngIf="selectedTag">正在搜尋：#{{ selectedTag }}</p>
 
-<ng-template #noTag>
-  <span>全部</span>
-</ng-template>
+  <div class="status-container">
+    <p class="hint" *ngIf="isLoading">正在幫你找附近的餐廳…</p>
+    <p class="hint error-text" *ngIf="!isLoading && errorMessage">{{ errorMessage }}</p>
+  </div>
 
-<!-- 載入中 -->
-<p class="hint" *ngIf="restaurants.length === 0">
-  正在幫你找附近適合的餐廳…
-</p>
-
-<!-- 餐廳卡片區 -->
-<div class="cards" *ngIf="restaurants.length > 0">
-  <div
-    class="card"
-    *ngFor="let r of restaurants; let i = index"
-    [class.selected]="selectedIndex === i"
-    (click)="selectCard(i)"
-  >
-    <!-- 餐廳圖片 -->
-    <img class="card-img" [src]="r.image" alt="restaurant image" />
-
-    <!-- 餐廳資訊 -->
-    <div class="card-body">
-      <h3 class="card-name">{{ r.name }}</h3>
-
-      <!-- 標籤 -->
-      <div class="tag-list">
-        <span class="tag" *ngFor="let t of r.tags">
-          {{ t }}
-        </span>
+  <div class="cards" *ngIf="!isLoading && restaurants.length > 0">
+    <div class="card" *ngFor="let r of restaurants; let i = index" 
+         [class.selected]="selectedIndex === i" (click)="selectCard(i)">
+      <img [src]="r.image" alt="restaurant" />
+      <div class="card-body">
+        <h3>{{ r.name }}</h3>
+        <div class="tags">
+          <span *ngFor="let t of r.tags">#{{ t }}</span>
+        </div>
+        <p class="distance">📍 距離約 {{ r.distance }} km</p>
       </div>
-
-      <!-- 距離 -->
-      <p class="distance">
-        距離 {{ r.distance }} km
-      </p>
     </div>
   </div>
-</div>
 
-<!-- 底部按鈕 -->
-<div class="actions">
-  <button class="btn secondary" (click)="shuffle()">
-    換一換
-  </button>
-
-  <button
-    class="btn primary"
-    [disabled]="selectedIndex === null"
-    (click)="finish()"
-  >
-    完成
-  </button>
+  <div class="actions" *ngIf="!isLoading && restaurants.length > 0">
+    <button class="btn secondary" (click)="shuffle()">🔄 換一個</button>
+    <button class="btn primary" (click)="finish()">✅ 完成</button>
+  </div>
 </div>

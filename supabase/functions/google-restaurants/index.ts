@@ -1,68 +1,51 @@
-// @ts-nocheck
-import { serve } from "https://deno.land/std/http/server.ts";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
-serve(async (req) => {
-  // ✅ CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
+serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { lat, lng, tag } = await req.json();
+    const { lat, lng, tag } = await req.json(); // ✅ 接收前端傳來的標籤
+    const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
 
-    if (!lat || !lng) {
-      return new Response("Missing location", { status: 400, headers: corsHeaders });
+    // ✅ 基本 URL
+    let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=3000&type=restaurant&language=zh-TW&key=${GOOGLE_MAPS_API_KEY}`;
+
+    // ✅ 如果有傳入標籤，加入 keyword 讓 Google 進行關鍵字過濾
+    if (tag) {
+      url += `&keyword=${encodeURIComponent(tag)}`;
     }
 
-    const apiKey = Deno.env.get("GOOGLE_PLACES_API_KEY");
-    if (!apiKey) {
-      return new Response("Missing Google API Key", { status: 500, headers: corsHeaders });
-    }
+    const googleRes = await fetch(url);
+    const googleData = await googleRes.json();
 
-    const radius = 1500;
-    const keyword = tag ?? "餐廳";
-
-    const url =
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
-      `?location=${lat},${lng}` +
-      `&radius=${radius}` +
-      `&type=restaurant` +
-      `&keyword=${encodeURIComponent(keyword)}` +
-      `&language=zh-TW` +
-      `&key=${apiKey}`;
-
-    const gRes = await fetch(url);
-    const gData = await gRes.json();
-
-    const restaurants = (gData.results ?? []).slice(0, 5).map((r) => {
-      const rLat = r.geometry.location.lat;
-      const rLng = r.geometry.location.lng;
-
+    const restaurants = (googleData.results || []).slice(0, 5).map((place: any) => {
+      const photoRef = place.photos?.[0]?.photo_reference;
       return {
-        name: r.name,
-        image: r.photos
-          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${r.photos[0].photo_reference}&key=${apiKey}`
-          : "https://picsum.photos/400/260?restaurant",
-        tags: r.types?.slice(0, 3) ?? [],
-        distance: 0, // 你前端已有距離顯示，之後要算再加
-        lat: rLat,
-        lng: rLng,
+        name: place.name,
+        image: photoRef 
+          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoRef}&key=${GOOGLE_MAPS_API_KEY}`
+          : 'https://via.placeholder.com/400x300?text=No+Photo',
+        tags: tag ? [tag, ...place.types?.slice(0, 2)] : place.types?.slice(0, 3), // ✅ 優先顯示選中標籤
+        distance: 0.8, 
+        lat: place.geometry.location.lat,
+        lng: place.geometry.location.lng,
       };
     });
 
     return new Response(JSON.stringify(restaurants), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: corsHeaders,
-    });
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
+
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
-});
+})
