@@ -31,10 +31,10 @@ export class FriendMatchingComponent {
   constructor(private router: Router) {}
 
   selectFriend(friend: any) {
-    this.router.navigate(['/friend/success'], {
-      state: { friend }
-    });
-  }
+  this.router.navigate(['/friend/chat'], {
+    state: { friend }
+  });
+}
 
   shuffle() {
     this.candidates = [...this.candidates].sort(() => Math.random() - 0.5);

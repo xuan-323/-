@@ -8,14 +8,12 @@ export const routes: Routes = [
   {
     path: 'auth/login',
     loadComponent: () =>
-      import('./auth/login/login.component')
-        .then(m => m.LoginComponent),
+      import('./auth/login/login.component').then(m => m.LoginComponent),
   },
   {
     path: 'auth/signup',
     loadComponent: () =>
-      import('./auth/signup/signup.component')
-        .then(m => m.SignupComponent),
+      import('./auth/signup/signup.component').then(m => m.SignupComponent),
   },
   {
     path: 'auth/update-password',
@@ -32,7 +30,7 @@ export const routes: Routes = [
         .then(m => m.WelcomeComponent),
   },
 
-  // ===== MBTI（登入後第一步）=====
+  // ===== MBTI =====
   {
     path: 'mbti',
     loadComponent: () =>
@@ -80,6 +78,22 @@ export const routes: Routes = [
         .then(m => m.FriendMatchingComponent),
   },
 
+  // ✅ 聊天頁
+  {
+    path: 'friend/chat',
+    loadComponent: () =>
+      import('./friend-chat')
+        .then(m => m.FriendChatComponent),
+  },
+
+  // ✅ 回饋頁
+  {
+    path: 'friend/feedback',
+    loadComponent: () =>
+      import('./friend-feedback')
+        .then(m => m.FriendFeedbackComponent),
+  },
+
   // ===== Home =====
   {
     path: 'home',
@@ -98,6 +112,5 @@ export const routes: Routes = [
     canMatch: [authGuard],
   },
 
-  // ===== 404 =====
   { path: '**', redirectTo: 'auth/login' },
 ];
