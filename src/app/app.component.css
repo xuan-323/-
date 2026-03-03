@@ -5,14 +5,12 @@
 /* 設置柔和的橘色 + 粉色 + 米白漸層背景 */
 .app-container {
     min-height: 100vh;
-    /* 柔和的暖色漸層：米白 -> 淡粉 -> 柔和橘 */
-    background: linear-gradient(135deg, 
-        #FFFBEB 0%,      
-        #FFEBEB 40%,      
-        #FFD7A3 100%     
+    background: linear-gradient(135deg,
+        #FFFBEB 0%,
+        #FFEBEB 40%,
+        #FFD7A3 100%
     );
     font-family: 'Inter', sans-serif;
-    /* 確保在行動裝置上提供 App 般的體驗 */
     padding: 0;
     margin: 0 auto;
     max-width: 100%;
@@ -20,5 +18,33 @@
 
 /* 統一的大圓角風格 */
 button, input, .card {
-    border-radius: 1.5rem; /* 大圓角 */
+    border-radius: 1.5rem;
+}
+
+/* --------------------------------------------- */
+/* ✅ 修正：聊天浮動按鈕往上移，避免壓到送出按鈕 */
+/* --------------------------------------------- */
+
+.chat-fab{
+  position: fixed;
+  right: 22px;
+
+  /* 🔥 往上推，避免壓到聊天輸入列 */
+  bottom: 110px;
+
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: #000;
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+  transition: transform .15s ease;
+  z-index: 9999;
+}
+
+.chat-fab:hover{
+  transform: translateY(-2px);
 }

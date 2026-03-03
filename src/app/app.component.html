@@ -1,4 +1,8 @@
-<!-- 根元件作為 Router 入口，RouterOutlet 會根據路由顯示 LoginComponent 或其他元件 -->
 <div class="app-container">
-    <router-outlet></router-outlet>
+  <router-outlet></router-outlet>
+
+  <!-- 全域聊天浮動按鈕 -->
+  <button class="chat-fab" (click)="goToChat()">
+    💬
+  </button>
 </div>
