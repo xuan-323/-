@@ -13,6 +13,9 @@ export class FriendMatchingComponent {
 
   tag = history.state?.tag ?? '不知道';
 
+  // ⭐ 接收從 result 傳來的餐廳
+  restaurant = history.state?.restaurant ?? null;
+
   candidates = [
     {
       name: 'Alex',
@@ -31,12 +34,18 @@ export class FriendMatchingComponent {
   constructor(private router: Router) {}
 
   selectFriend(friend: any) {
-  this.router.navigate(['/friend/chat'], {
-    state: { friend }
-  });
-}
+
+    this.router.navigate(['/friend/chat'], {
+      state: {
+        friend: friend,
+        restaurant: this.restaurant   // ⭐ 把餐廳一起帶過去
+      }
+    });
+
+  }
 
   shuffle() {
     this.candidates = [...this.candidates].sort(() => Math.random() - 0.5);
   }
+
 }

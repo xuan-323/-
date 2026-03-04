@@ -1,32 +1,56 @@
 <div class="page">
+
   <h1 class="title">用餐回饋 🍽️</h1>
-  <p class="subtitle">你和 {{ friend.name }}（{{ friend.mbti }}）吃得如何？</p>
+  <p class="subtitle">
+    你和 {{ friend.name }}（{{ friend.mbti }}）吃得如何？
+  </p>
 
   <div class="card">
-    <div class="rest-name">{{ restaurant.name }}</div>
 
+    <!-- 餐廳名稱 -->
+    <div class="rest-name">
+      {{ restaurant.name }}
+    </div>
+
+    <!-- 星星評分 -->
     <div class="stars">
       <button
+        type="button"
         class="star"
         *ngFor="let s of [1,2,3,4,5]"
         (click)="setRating(s)"
         [class.on]="s <= rating"
-        aria-label="star"
       >
         ★
       </button>
     </div>
 
+    <!-- 評論 -->
     <textarea
       [(ngModel)]="comment"
       rows="4"
       placeholder="想說的話（可不寫）"
     ></textarea>
 
-    <button class="submit" (click)="submit()" [disabled]="rating===0">
+    <!-- 送出 -->
+    <button
+      type="button"
+      class="submit"
+      (click)="submit()"
+      [disabled]="rating===0"
+    >
       送出回饋
     </button>
 
-    <button class="skip" (click)="skip()">先略過</button>
+    <!-- 略過 -->
+    <button
+      type="button"
+      class="skip"
+      (click)="skip()"
+    >
+      先略過
+    </button>
+
   </div>
+
 </div>

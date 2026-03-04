@@ -1,8 +1,13 @@
 <div class="app-container">
   <router-outlet></router-outlet>
 
-  <!-- 全域聊天浮動按鈕 -->
-  <button class="chat-fab" (click)="goToChat()">
+  <!-- 歷史紀錄（在聊天按鈕上方） -->
+  <button class="history-fab" (click)="goToHistory()" aria-label="history">
+    📜
+  </button>
+
+  <!-- 聊天 -->
+  <button class="chat-fab" (click)="goToChat()" aria-label="chat">
     💬
   </button>
 </div>

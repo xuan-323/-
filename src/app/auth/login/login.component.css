@@ -1,49 +1,81 @@
 /* Custom Theme Overrides for "食伴 Match" Branding */
-/* 注意：這些顏色通常會定義在 Tailwind config 或基礎 CSS 中，
-         但我們在此處保留以匹配原始程式碼的邏輯。 */
 
-.bg-brand-cream { 
-    background-color: #FFFDF5; 
+.bg-brand-cream {
+    background-color: #FFFDF5;
 }
-.text-brand-brown { 
-    color: #5D4037; 
+
+.text-brand-brown {
+    color: #5D4037;
 }
-.text-brand-brown-light { 
-    color: #8D6E63; 
+
+.text-brand-brown-light {
+    color: #8D6E63;
 }
-.border-brand-brown-light { 
-    border-color: #EFEBE9; 
+
+.border-brand-brown-light {
+    border-color: #EFEBE9;
 }
-/* 此處應為 Tailwind 設定，但在自訂樣式中實現 */
-.focus-ring-orange { 
-    --tw-ring-color: #FF9F43; 
-    border-color: #FF9F43; 
-} 
-.bg-brand-orange { 
-    background-color: #FF9F43; 
+
+/* focus input */
+.focus-ring-orange:focus {
+    outline: none;
+    border-color: #FF9F43;
+    box-shadow: 0 0 0 2px rgba(255,159,67,0.25);
 }
-.hover-bg-brand-orange-dark:hover { 
-    background-color: #FF8F23; 
+
+/* ⭐ 登入按鈕主色（永遠橘色） */
+.bg-brand-orange {
+    background-color: #FF9F43;
+    color: white;
+    border: none;
 }
-.text-brand-orange { 
-    color: #FF9F43; 
+
+/* hover 時稍微深一點 */
+.hover-bg-brand-orange-dark:hover {
+    background-color: #FF8F23;
 }
+
+/* 按鈕外觀升級 */
+button.bg-brand-orange {
+    width: 100%;
+    height: 48px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+/* hover 動畫 */
+button.bg-brand-orange:hover {
+    transform: translateY(-1px);
+}
+
+/* 文字品牌色 */
+.text-brand-orange {
+    color: #FF9F43;
+}
+
 
 /* Smooth illustration animations */
+
 @keyframes float {
-    0% { 
-        transform: translateY(0px) rotate(0deg); 
+    0% {
+        transform: translateY(0px) rotate(0deg);
     }
-    50% { 
-        transform: translateY(-5px) rotate(2deg); 
+    50% {
+        transform: translateY(-5px) rotate(2deg);
     }
-    100% { 
-        transform: translateY(0px) rotate(0deg); 
+    100% {
+        transform: translateY(0px) rotate(0deg);
     }
 }
+
 .animate-float {
     animation: float 4s ease-in-out infinite;
 }
+
 .animate-float-delayed {
     animation: float 5s ease-in-out infinite;
     animation-delay: 1s;

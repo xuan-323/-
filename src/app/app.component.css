@@ -48,3 +48,66 @@ button, input, .card {
 .chat-fab:hover{
   transform: translateY(-2px);
 }
+
+.history-fab{
+  position: fixed;
+  right: 22px;
+  bottom: 92px; /* 在聊天按鈕上方 */
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #000;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+  transition: transform .15s ease;
+  z-index: 999;
+}
+.history-fab:hover{
+  transform: translateY(-2px);
+}
+
+
+.chat-fab{
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: #000;
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+  transition: transform .15s ease;
+  z-index: 999;
+}
+
+.chat-fab:hover{
+  transform: translateY(-2px);
+}
+
+/* ✅ 歷史按鈕：固定在聊天按鈕上方 */
+.history-fab{
+  position: fixed;
+  right: 22px;
+  bottom: 96px; /* 22 + 60 + 14 = 96 (留間距) */
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #000;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0,0,0,.18);
+  transition: transform .15s ease;
+  z-index: 999;
+}
+.history-fab:hover{
+  transform: translateY(-2px);
+}
