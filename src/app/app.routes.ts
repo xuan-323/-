@@ -78,7 +78,16 @@ export const routes: Routes = [
         .then(m => m.FriendMatchingComponent),
   },
 
-  // ✅ 聊天頁
+  // ===== 歷史紀錄 =====
+  {
+    path: 'history',
+    loadComponent: () =>
+      import('./auth/history/history')
+        .then(m => m.HistoryComponent),
+    canMatch: [authGuard],
+  },
+
+  // ===== 聊天頁 =====
   {
     path: 'friend/chat',
     loadComponent: () =>
@@ -86,7 +95,7 @@ export const routes: Routes = [
         .then(m => m.FriendChatComponent),
   },
 
-  // ✅ 回饋頁
+  // ===== 回饋頁 =====
   {
     path: 'friend/feedback',
     loadComponent: () =>

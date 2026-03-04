@@ -1,0 +1,85 @@
+<div class="page">
+
+  <h1 class="title">📜 歷史紀錄</h1>
+
+  <!-- 偵錯列（可留可刪） -->
+  <p class="debug">{{ debugText }}</p>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="tab==='solo'" (click)="setTab('solo')">
+      自己吃
+    </button>
+    <button class="tab" [class.active]="tab==='friend'" (click)="setTab('friend')">
+      找飯友
+    </button>
+  </div>
+
+  <!-- ===================== -->
+  <!-- 自己吃 -->
+  <!-- ===================== -->
+  <div *ngIf="tab==='solo'">
+
+    <p class="empty" *ngIf="soloList.length===0">
+      目前還沒有自己吃的回饋紀錄～
+    </p>
+
+    <div class="list" *ngIf="soloList.length>0">
+      <div class="item" *ngFor="let it of soloList; let i = index">
+
+        <div class="row">
+          <div class="name">🍽 {{ it.restaurant?.name }}</div>
+          <button class="del" (click)="removeSolo(i)">刪除</button>
+        </div>
+
+        <div class="stars">{{ stars(it.rating) }}</div>
+
+        <div class="meta">
+          <span *ngIf="it.comment">💬 {{ it.comment }}</span>
+          <span *ngIf="!it.comment">💬（未填評論）</span>
+        </div>
+
+        <div class="time">🕒 {{ formatTime(it.time) }}</div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== -->
+  <!-- 找飯友 -->
+  <!-- ===================== -->
+  <div *ngIf="tab==='friend'">
+
+    <p class="empty" *ngIf="friendList.length===0">
+      目前還沒有找飯友的回饋紀錄～
+    </p>
+
+    <div class="list" *ngIf="friendList.length>0">
+      <div class="item" *ngFor="let it of friendList; let i = index">
+
+        <div class="row">
+          <div class="name">
+            👫 {{ it.friend?.name }} ｜ 🍽 {{ it.restaurant?.name }}
+          </div>
+          <button class="del" (click)="removeFriend(i)">刪除</button>
+        </div>
+
+        <div class="stars">{{ stars(it.rating) }}</div>
+
+        <div class="meta">
+          <span *ngIf="it.comment">💬 {{ it.comment }}</span>
+          <span *ngIf="!it.comment">💬（未填評論）</span>
+        </div>
+
+        <div class="time">🕒 {{ formatTime(it.time) }}</div>
+
+        <!-- 顯示聊天摘要 -->
+        <div class="meta" *ngIf="it.chat && it.chat.length > 0">
+  🗨 共 {{ it.chat.length }} 則對話
+</div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>

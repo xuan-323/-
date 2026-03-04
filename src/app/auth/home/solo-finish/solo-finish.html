@@ -2,12 +2,10 @@
 
   <h1 class="finish-title">今天就吃這間吧！</h1>
 
-  <!-- 防呆：如果沒有資料 -->
   <p class="hint" *ngIf="!restaurant">
     ⚠️ 沒有接收到餐廳資料
   </p>
 
-  <!-- 有餐廳資料才顯示 -->
   <div class="card" *ngIf="restaurant">
 
     <img
@@ -21,7 +19,7 @@
     </h2>
 
     <p class="card-tags">
-      {{ restaurant.tags.join('、') }}
+      {{ restaurant.tags?.join('、') }}
     </p>
 
     <p class="card-distance">
@@ -30,7 +28,6 @@
 
   </div>
 
-  <!-- 按鈕區 -->
   <div class="actions">
     <button class="btn primary" (click)="openMap()">
       📍 開啟地圖
@@ -39,6 +36,57 @@
     <button class="btn secondary" (click)="goBack()">
       再選一次
     </button>
+
+    <button class="btn feedback-btn" (click)="openFeedback()">
+      ⭐ 用餐回饋
+    </button>
   </div>
 
+</div>
+
+
+<!-- ⭐ 回饋彈窗（找飯友同款） -->
+<div class="modal-backdrop" *ngIf="showFeedback">
+  <div class="modal">
+
+    <div class="modal-head">
+      <div class="modal-title">用餐回饋</div>
+      <button class="modal-x" (click)="closeFeedback()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <div class="modal-sub">
+        {{ restaurant?.name }}（星星必填，文字可不填）
+      </div>
+
+      <!-- ⭐ 星星 -->
+      <div class="stars">
+        <span
+          class="star"
+          *ngFor="let n of [1,2,3,4,5]"
+          (click)="setRating(n)"
+          [class.filled]="rating >= n"
+        >★</span>
+      </div>
+
+      <!-- ✏ 文字評論 -->
+      <textarea
+        rows="3"
+        [(ngModel)]="comment"
+        placeholder="想說的話（可不填）"
+      ></textarea>
+
+      <!-- 送出 -->
+      <button
+        class="submit"
+        [disabled]="rating <= 0"
+        (click)="submitFeedback()"
+      >
+        送出回饋
+      </button>
+
+    </div>
+
+  </div>
 </div>

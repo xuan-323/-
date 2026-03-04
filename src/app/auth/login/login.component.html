@@ -1,28 +1,50 @@
-
 <h1 style="color:red">TEST_FROM_MY_APP</h1>
+
 <div class="bg-brand-cream min-h-screen flex items-center justify-center font-display antialiased p-4">
+
   <div class="w-full max-w-[400px] bg-white rounded-3xl shadow-[0_12px_40px_-8px_rgba(93,64,55,0.08)] overflow-hidden flex flex-col relative border border-[#F5F5F5]">
 
     <!-- Header -->
     <div class="pt-10 pb-6 px-8 flex flex-col items-center justify-center relative bg-gradient-to-b from-[#FFF8F0] to-white">
-      <div class="absolute top-8 left-10 text-brand-orange opacity-80 animate-float">
-        <span class="material-symbols-outlined text-4xl">ramen_dining</span>
-      </div>
-      <div class="absolute top-6 right-10 text-brand-orange opacity-60 animate-float-delayed">
-        <span class="material-symbols-outlined text-3xl">chat_bubble</span>
-      </div>
-      <div class="absolute top-20 right-8 text-brand-brown-light opacity-40 transform rotate-12">
-        <span class="material-symbols-outlined text-2xl">location_on</span>
+
+      <!-- 左上 icon -->
+      <div class="absolute top-8 left-10 opacity-80 animate-float">
+        <span class="material-symbols-outlined text-4xl" style="color:#FF9F43">
+          ramen_dining
+        </span>
       </div>
 
-      <div class="w-24 h-24 mb-5 rounded-full bg-white shadow-sm border border-brand-brown-light flex items-center justify-center z-10">
-        <span class="material-symbols-outlined text-brand-orange text-[3.5rem]">lunch_dining</span>
+      <!-- 右上 icon -->
+      <div class="absolute top-6 right-10 opacity-60 animate-float-delayed">
+        <span class="material-symbols-outlined text-3xl" style="color:#FF9F43">
+          chat_bubble
+        </span>
       </div>
 
+      <!-- location -->
+      <div class="absolute top-20 right-8 opacity-40 transform rotate-12">
+        <span class="material-symbols-outlined text-2xl" style="color:#8D6E63">
+          location_on
+        </span>
+      </div>
+
+      <!-- Logo -->
+      <div class="w-24 h-24 mb-5 rounded-full bg-white shadow-md border border-[#FFE0B2] flex items-center justify-center z-10">
+        <span class="material-symbols-outlined text-[3.5rem]" style="color:#8D6E63">
+          lunch_dining
+        </span>
+      </div>
+
+      <!-- Title -->
       <div class="flex flex-col gap-1 items-center z-10">
-        <p class="text-brand-brown text-[2rem] font-black leading-tight tracking-[-0.033em]">食遇 Match</p>
-        <p class="text-brand-brown-light text-base font-medium leading-normal">食光荏苒，幸而遇見</p>
+        <p style="color:#5D4037;font-size:2rem;font-weight:900;">
+          食遇 Match
+        </p>
+        <p style="color:#8D6E63;font-size:16px;">
+          食光荏苒，幸而遇見
+        </p>
       </div>
+
     </div>
 
     <!-- Form -->
@@ -30,82 +52,104 @@
           (ngSubmit)="handleLogin()">
 
       <!-- Email -->
-      <div class="flex flex-col gap-1.5">
-        <div class="relative flex items-center group">
-          <span class="material-symbols-outlined absolute left-4 text-[#BCAAA4] group-focus-within:text-brand-orange transition-colors">
-            mail
-          </span>
-          <input
-            type="email"
-            name="email"
-            [(ngModel)]="email"
-            required
-            placeholder="Email"
-            class="form-input flex w-full rounded-2xl border border-brand-brown-light bg-white h-14 pl-12 pr-4 text-brand-brown placeholder-[#BCAAA4] text-base focus:outline-0 focus:ring-2 focus-ring-orange transition-all shadow-sm"
-          />
-        </div>
+      <div class="relative flex items-center">
+
+        <span class="material-symbols-outlined absolute left-4" style="color:#BCAAA4">
+          mail
+        </span>
+
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          placeholder="Email"
+          class="w-full rounded-2xl border h-14 pl-12 pr-4 text-base shadow-sm"
+          style="border-color:#EFEBE9;color:#5D4037"
+        />
+
       </div>
 
       <!-- Password -->
-      <div class="flex flex-col gap-1.5">
-        <div class="relative flex items-center group">
-          <span class="material-symbols-outlined absolute left-4 text-[#BCAAA4] group-focus-within:text-brand-orange transition-colors">
-            lock
-          </span>
-          <input
-            [type]="showPassword ? 'text' : 'password'"
-            name="password"
-            [(ngModel)]="password"
-            required
-            placeholder="密碼 Password"
-            class="form-input flex w-full rounded-2xl border border-brand-brown-light bg-white h-14 pl-12 pr-12 text-brand-brown placeholder-[#BCAAA4] text-base focus:outline-0 focus:ring-2 focus-ring-orange transition-all shadow-sm"
-          />
-          <button
-            type="button"
-            (click)="togglePasswordVisibility()"
-            class="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center text-[#BCAAA4] hover:text-brand-brown transition-colors cursor-pointer"
-          >
-            <span class="material-symbols-outlined text-[20px]">
-              {{ showPassword ? 'visibility_off' : 'visibility' }}
-            </span>
-          </button>
-        </div>
+      <div class="relative flex items-center">
 
-        <!-- Forgot password -->
-        <div class="flex justify-end mt-1">
-          <button
-            type="button"
-            (click)="forgotPassword()"
-            class="text-brand-brown-light hover:text-brand-orange text-sm font-bold tracking-wide transition-colors cursor-pointer"
-          >
-            <span class="truncate">忘記密碼？</span>
-          </button>
-        </div>
+        <span class="material-symbols-outlined absolute left-4" style="color:#BCAAA4">
+          lock
+        </span>
+
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          name="password"
+          [(ngModel)]="password"
+          required
+          placeholder="密碼 Password"
+          class="w-full rounded-2xl border h-14 pl-12 pr-12 text-base shadow-sm"
+          style="border-color:#EFEBE9;color:#5D4037"
+        />
+
+        <button
+          type="button"
+          (click)="togglePasswordVisibility()"
+          class="absolute right-0 top-0 bottom-0 px-4 flex items-center"
+          style="color:#BCAAA4"
+        >
+          <span class="material-symbols-outlined text-[20px]">
+            {{ showPassword ? 'visibility_off' : 'visibility' }}
+          </span>
+        </button>
+
       </div>
 
-      <!-- Login -->
-      <div class="pt-2">
+      <!-- Forgot password -->
+      <div class="flex justify-end -mt-2">
         <button
-          type="submit"
-          class="w-full bg-brand-orange hover-bg-brand-orange-dark text-white font-bold h-12 rounded-2xl shadow-md hover:shadow-lg transition-all transform active:scale-[0.98] text-lg flex items-center justify-center gap-2"
+          type="button"
+          (click)="forgotPassword()"
+          style="color:#8D6E63;font-size:14px;font-weight:bold"
+          onmouseover="this.style.color='#FF9F43'"
+          onmouseout="this.style.color='#8D6E63'"
         >
-          <span>登入</span>
+          忘記密碼？
         </button>
       </div>
 
+      <!-- Login Button -->
+      <button
+        type="submit"
+        style="
+          width:100%;
+          height:48px;
+          background:#FF9F43;
+          color:white;
+          font-weight:bold;
+          border:none;
+          border-radius:16px;
+          box-shadow:0 6px 18px rgba(255,159,67,0.35);
+          font-size:18px;
+          cursor:pointer;
+          transition:0.2s;
+        "
+        onmouseover="this.style.background='#FF8F23'"
+        onmouseout="this.style.background='#FF9F43'"
+      >
+        登入
+      </button>
+
       <!-- Register -->
-      <div class="mt-2 flex justify-center">
+      <div class="flex justify-center mt-2">
         <button
           type="button"
           (click)="navigateToRegister()"
-          class="text-brand-brown-light text-sm font-medium hover:text-brand-brown transition-colors"
+          style="color:#8D6E63;font-size:14px"
         >
           還沒有帳號？
-          <span class="text-brand-orange font-bold underline decoration-2 decoration-transparent hover:decoration-brand-orange transition-all">
+          <span style="color:#FF9F43;font-weight:bold;text-decoration:underline;">
             註冊
           </span>
         </button>
       </div>
+
     </form>
+
   </div>
 </div>
