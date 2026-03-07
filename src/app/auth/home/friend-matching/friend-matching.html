@@ -1,29 +1,44 @@
-<div class="page">
+<div class="matching-container">
 
-  <!-- 標題區（置中最上） -->
-  <div class="header">
-    <h1 class="title">找飯友中 🤝</h1>
-    <p class="subtitle">也選擇「{{ tag }}」的 MBTI 飯友</p>
+  <!-- 等待配對 -->
+  <div *ngIf="candidates.length === 0" class="waiting">
+
+    <h2>🍜 食伴 Match</h2>
+
+    <p>正在幫你找適合的飯友...</p>
+
+    <div class="loader"></div>
+
   </div>
 
-  <!-- 卡片區 -->
-  <div class="cards">
-    <div
-      class="friend-card"
-      *ngFor="let f of candidates"
-      (click)="selectFriend(f)"
-      tabindex="0"
-    >
-      <img [src]="f.avatar" />
-      <h3>{{ f.name }}</h3>
-      <p class="mbti">{{ f.mbti }}</p>
-      <p class="intro">{{ f.intro }}</p>
+
+  <!-- 配對成功 -->
+  <div *ngIf="candidates.length > 0">
+
+    <div *ngFor="let friend of candidates" class="card">
+
+      <img [src]="friend.avatar" class="avatar">
+
+      <h3>{{ friend.name }}</h3>
+
+      <p class="mbti">{{ friend.mbti }}</p>
+
+      <p class="intro">{{ friend.intro }}</p>
+
+      <div class="buttons">
+
+        <button class="like" (click)="likeFriend(friend)">
+          一起吃 🍜
+        </button>
+
+        <button class="chat" (click)="goToChat(friend)">
+          開始聊天 💬
+        </button>
+
+      </div>
+
     </div>
-  </div>
 
-  <!-- 按鈕區 -->
-  <div class="actions">
-    <button class="shuffle" (click)="shuffle()">換一組</button>
   </div>
 
 </div>

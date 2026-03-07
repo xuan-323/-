@@ -45,7 +45,7 @@ export class FriendResultComponent implements OnInit {
   }
 
   // =============================
-  // 🌍 計算距離（km）
+  // 計算距離
   // =============================
   private calcDistanceKm(
     lat1: number,
@@ -53,6 +53,7 @@ export class FriendResultComponent implements OnInit {
     lat2: number,
     lng2: number
   ): number {
+
     const R = 6371;
     const toRad = (v: number) => (v * Math.PI) / 180;
 
@@ -62,20 +63,27 @@ export class FriendResultComponent implements OnInit {
     const a =
       Math.sin(dLat / 2) ** 2 +
       Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLng / 2) ** 2;
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) ** 2;
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
     return R * c;
   }
 
   // =============================
-  // 抓餐廳
+  // 取得餐廳
   // =============================
   async fetchRestaurants() {
+
     try {
+
       const { data: { session } } = await this.supabase.auth.getSession();
-      if (!session) return;
+
+      if (!session) {
+        console.error("沒有 session");
+        return;
+      }
 
       const position = await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject)
@@ -118,45 +126,111 @@ export class FriendResultComponent implements OnInit {
         : [];
 
       if (this.allRestaurants.length > 0) {
+
         this.currentIndex = 0;
         this.restaurant = this.allRestaurants[0];
+
       } else {
+
         this.restaurant = {
           name: '附近熱門餐廳',
           image: 'https://picsum.photos/400/260?fallback',
           tags: ['推薦'],
           distance: 0.5,
         };
+
       }
 
       this.selected = false;
       this.cdr.detectChanges();
 
     } catch (err) {
-      console.error('❌ 取得餐廳失敗', err);
+
+      console.error('取得餐廳失敗', err);
+
     }
+
   }
 
+  // 點擊卡片
   selectCard() {
     this.selected = true;
   }
 
+  // 換餐廳
   shuffle() {
+
     if (this.allRestaurants.length === 0) return;
 
     this.currentIndex =
       (this.currentIndex + 1) % this.allRestaurants.length;
 
     this.restaurant = this.allRestaurants[this.currentIndex];
+
     this.selected = false;
+
     this.cdr.detectChanges();
+
   }
 
-  confirm() {
+  // =============================
+  // 確認餐廳
+  // =============================
+  async confirm() {
+
     if (!this.selected || !this.restaurant) return;
 
-    this.router.navigate(['/friend/matching'], {
-      state: { restaurant: this.restaurant }
-    });
+    try {
+
+      const { data: { session } } = await this.supabase.auth.getSession();
+
+      if (!session) {
+        console.error("沒有 session");
+        return;
+      }
+
+      const user = session.user;
+
+      console.log("登入 user:", user.id);
+      console.log("選擇餐廳:", this.restaurant.name);
+
+      const { data, error } = await this.supabase
+        .from('dining_requests')
+        .upsert(
+          {
+            user_id: user.id,
+            restaurant_id: this.restaurant.name,
+            dining_type: 'match',
+            status: 'active'
+          },
+          {
+            onConflict: 'user_id'
+          }
+        )
+        .select();
+
+      if (error) {
+
+        console.error("Supabase error:", error);
+        return;
+
+      }
+
+      console.log("成功寫入 dining_requests:", data);
+
+      this.router.navigate(['/friend/matching'], {
+        state: {
+          restaurant: this.restaurant,
+          tag: this.selectedTag
+        }
+      });
+
+    } catch (err) {
+
+      console.error("系統錯誤:", err);
+
+    }
+
   }
+
 }

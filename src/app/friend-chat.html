@@ -1,79 +1,102 @@
 <div class="chat-page">
+
+  <!-- 上方資訊 -->
   <div class="topbar">
+
     <div class="left">
-      <img class="avatar" [src]="friend.avatar" *ngIf="friend.avatar" />
-      <div class="meta">
-        <div class="name">{{ friend.name }}</div>
-        <div class="mbti">{{ friend.mbti }}</div>
+
+      <img
+        class="avatar"
+        [src]="friend?.avatar || 'https://i.pravatar.cc/100'"
+      />
+
+      <div>
+
+        <div class="name">
+          {{friend?.name || '匿名使用者'}}
+        </div>
+
+        <div class="mbti">
+          {{friend?.mbti || '未知'}}
+        </div>
+
       </div>
+
     </div>
 
-    <div class="right">
-      <button class="btn ghost" (click)="backToPrev()">返回</button>
-      <button class="btn close" (click)="endChat()">結束對話</button>
-    </div>
   </div>
 
-  <div class="chat-body" #chatBody>
-    <div
-      class="bubble"
-      *ngFor="let m of messages"
-      [class.me]="m.from==='me'"
-      [class.friend]="m.from==='friend'"
-    >
-      <div class="text">{{ m.text }}</div>
-      <div class="time">{{ m.time }}</div>
+
+  <!-- 聊天訊息 -->
+  <div class="chat-body" #chatBox>
+
+    <div *ngFor="let msg of messages">
+
+      <!-- 我 -->
+      <div
+        *ngIf="msg.sender_id === userId"
+        class="bubble me"
+      >
+
+        {{msg.message}}
+
+        <div class="time">
+
+          {{msg.created_at | date:'HH:mm'}}
+
+          <span class="read">
+            {{msg.is_read ? '✓✓':'✓'}}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- 對方 -->
+      <div
+        *ngIf="msg.sender_id !== userId"
+        class="bubble friend"
+      >
+
+        {{msg.message}}
+
+        <div class="time">
+          {{msg.created_at | date:'HH:mm'}}
+        </div>
+
+      </div>
+
     </div>
 
-    <!-- ✅ 輸入中泡泡 -->
-    <div class="bubble friend typing" *ngIf="isTyping">
+
+    <!-- typing -->
+    <div *ngIf="typing" class="bubble friend typing">
+
       <div class="dots">
-        <span></span><span></span><span></span>
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
+
     </div>
+
   </div>
 
+
+  <!-- 輸入 -->
   <div class="chat-input">
-    <input [(ngModel)]="input" placeholder="輸入訊息..." (keydown.enter)="send()" />
-    <button (click)="send()">送出</button>
+
+    <input
+      [(ngModel)]="newMessage"
+      placeholder="輸入訊息..."
+      (input)="onTyping()"
+    />
+
+    <button (click)="sendMessage()">
+      發送
+    </button>
+
   </div>
 
-  <!-- ✅ 右下：回饋按鈕（放在聊天按鈕下方的位置） -->
-  <button class="feedback-fab" (click)="openFeedback()" title="餐廳回饋">★</button>
-
-  <!-- ✅ 回饋彈窗（星星必填、文字可不寫） -->
-  <div class="modal-backdrop" *ngIf="showFeedback">
-    <div class="modal">
-      <div class="modal-head">
-        <div class="modal-title">餐廳回饋</div>
-        <button class="modal-x" (click)="closeFeedbackModal()">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="modal-sub">
-          與 <b>{{ friend.name }}</b> 用餐：<b>{{ restaurant?.name }}</b>
-        </div>
-
-        <div class="stars" (mouseleave)="hoverRating=0">
-          <span
-            class="star"
-            *ngFor="let n of [1,2,3,4,5]"
-            (mouseenter)="hoverRating=n"
-            (click)="setRating(n)"
-            [class.filled]="n <= (hoverRating || rating)"
-          >★</span>
-        </div>
-
-        <textarea
-          rows="4"
-          [(ngModel)]="comment"
-          placeholder="文字評論（可不寫）"
-        ></textarea>
-
-        <button class="submit" [disabled]="rating===0" (click)="submitFeedback()">
-          送出回饋
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
