@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { createClient } from '@supabase/supabase-js';
@@ -11,7 +11,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './friend-matching.html',
   styleUrls: ['./friend-matching.css'],
 })
-export class FriendMatchingComponent implements OnInit, OnDestroy {
+export class FriendMatchingComponent implements OnInit {
 
   private supabase = createClient(
     environment.supabaseUrl,
@@ -23,7 +23,8 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
 
   candidates: any[] = [];
   currentUserId: string | null = null;
-  pollingId: any = null;
+
+  private matched = false;
 
   constructor(
     private router: Router,
@@ -31,144 +32,156 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    console.log('matching 頁收到 restaurant:', this.restaurant);
 
     const { data: { user } } = await this.supabase.auth.getUser();
-
-    if (!user) {
-      console.error('抓不到登入使用者');
-      return;
-    }
+    if (!user) return;
 
     this.currentUserId = user.id;
-
-    // 先查一次
+      await this.supabase.from('dining_requests').insert({
+    user_id: this.currentUserId,
+    restaurant_id: this.restaurant?.name,
+    status: 'waiting'
+  });
     await this.findCandidates();
+    await this.checkMatch();
 
-    // 開始輪詢
-    this.startPolling();
-
-    // 監聽 matches
+    // 🔥 即時監聽
     this.supabase
       .channel('matches-listener')
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'matches'
-        },
+        { event: 'INSERT', schema: 'public', table: 'matches' },
         async () => {
           await this.checkMatch();
         }
       )
       .subscribe();
+
+    // 🔥 輪詢保底
+    setInterval(async () => {
+      await this.checkMatch();
+    }, 2000);
   }
 
-  startPolling() {
-    this.pollingId = setInterval(async () => {
-      await this.findCandidates();
-
-      if (this.candidates.length > 0) {
-        clearInterval(this.pollingId);
-        this.pollingId = null;
-        console.log('找到候選人，停止輪詢');
-      }
-    }, 3000);
-  }
+  /* =========================
+     找候選人 + 自動配對
+  ========================= */
 
   async findCandidates() {
-    if (!this.currentUserId) return;
 
-    console.log('目前 restaurant:', this.restaurant);
-    console.log('目前 restaurant.name:', this.restaurant?.name);
-
-    if (!this.restaurant?.name) {
-      console.error('restaurant.name 不存在，查不到候選人', this.restaurant);
-      this.candidates = [];
-      this.cdr.detectChanges();
-      return;
-    }
+    if (!this.currentUserId || this.matched) return;
 
     const { data, error } = await this.supabase
       .from('dining_requests')
-      .select(`
-        user_id,
-        restaurant_id,
-        profiles (
-          username,
-          mbti,
-          avatar_url
-        )
-      `)
-      .eq('restaurant_id', this.restaurant.name)
+      .select('user_id, restaurant_id')
+      .eq('restaurant_id', this.restaurant?.name)
+      .eq('status', 'waiting')
       .neq('user_id', this.currentUserId)
       .limit(1);
 
     if (error) {
-      console.error('找候選人錯誤', error);
+      console.error("找候選人錯誤:", JSON.stringify(error, null, 2));
       return;
     }
 
-    console.log('候選人查詢結果:', data);
-
     if (!data || data.length === 0) {
-      console.log('沒有候選人');
-      this.candidates = [];
-      this.cdr.detectChanges();
+      console.log("沒有候選人（持續等待）");
       return;
     }
 
     const user = data[0];
+    console.log("找到候選人:", user);
 
+    // 🔥 抓 profile
+    const { data: profile } = await this.supabase
+      .from('profiles')
+      .select('username, mbti, avatar_url')
+      .eq('id', user.user_id)
+      .single();
+
+    // 🔥 用 upsert（避免 409 + 一步拿 id）
+    const { data: match, error: matchError } = await this.supabase
+      .from('matches')
+      .upsert(
+        {
+          user_a_id: this.currentUserId,
+          user_b_id: user.user_id,
+          restaurant_id: this.restaurant?.name
+        },
+        {
+          onConflict: 'user_a_id,user_b_id'
+        }
+      )
+      .select()
+      .single();
+
+    if (matchError) {
+      console.error("建立 match 失敗:", matchError);
+      return;
+    }
+
+    const matchId = match?.id;
+
+    if (!matchId) {
+      console.error("❌ matchId 沒拿到");
+      return;
+    }
+
+    console.log("✅ matchId:", matchId);
+
+    // 🔥 更新狀態
+    await this.supabase
+      .from('dining_requests')
+      .update({ status: 'completed' })
+      .in('user_id', [this.currentUserId, user.user_id]);
+
+    // 🔥 UI 顯示
     this.candidates = [
       {
         user_id: user.user_id,
-        name: user.profiles?.[0]?.username ?? '未命名使用者',
-        mbti: user.profiles?.[0]?.mbti ?? '未知',
-        avatar: user.profiles?.[0]?.avatar_url ?? 'https://i.pravatar.cc/300?img=32',
-        intro: '一起吃飯吧！'
+        name: profile?.username || '匿名使用者',
+        mbti: profile?.mbti,
+        avatar: profile?.avatar_url,
+        intro: "一起吃飯吧！"
       }
     ];
 
     this.cdr.detectChanges();
+
+    // 🔥 直接跳聊天室（不等 checkMatch）
+    this.matched = true;
+
+    this.router.navigate(['/friend/chat'], {
+      state: {
+        matchId: matchId,
+        restaurant: this.restaurant
+      }
+    });
   }
 
-  async likeFriend(friend: any) {
-    if (!this.currentUserId) return;
-
-    const { error } = await this.supabase
-      .from('likes')
-      .insert({
-        from_user_id: this.currentUserId,
-        to_user_id: friend.user_id
-      });
-
-    if (error) {
-      console.error('送出 like 失敗', error);
-      return;
-    }
-
-    console.log('👍 已送出一起吃邀請');
-  }
+  /* =========================
+     保底：檢查是否已配對
+  ========================= */
 
   async checkMatch() {
-    if (!this.currentUserId) return;
 
-    const { data, error } = await this.supabase
+    if (!this.currentUserId || this.matched) return;
+
+    const { data } = await this.supabase
       .from('matches')
       .select('*')
       .or(`user_a_id.eq.${this.currentUserId},user_b_id.eq.${this.currentUserId}`)
       .limit(1);
 
-    if (error) {
-      console.error('檢查配對失敗', error);
-      return;
-    }
-
     if (!data || data.length === 0) return;
 
     const match = data[0];
+
+    if (!match?.id) return;
+
+    console.log("🎉 配對成功:", match);
+
+    this.matched = true;
 
     this.router.navigate(['/friend/chat'], {
       state: {
@@ -178,6 +191,10 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     });
   }
 
+  async likeFriend(friend: any) {
+    console.log("like:", friend);
+  }
+
   goToChat(friend: any) {
     this.router.navigate(['/friend/chat'], {
       state: {
@@ -185,12 +202,5 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
         restaurant: this.restaurant
       }
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.pollingId) {
-      clearInterval(this.pollingId);
-      this.pollingId = null;
-    }
   }
 }

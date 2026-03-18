@@ -201,7 +201,7 @@ export class FriendResultComponent implements OnInit {
             user_id: user.id,
             restaurant_id: this.restaurant.name,
             dining_type: 'match',
-            status: 'active'
+            status: 'waiting'
           },
           {
             onConflict: 'user_id'
