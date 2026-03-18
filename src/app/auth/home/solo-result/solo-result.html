@@ -8,14 +8,20 @@
   </div>
 
   <div class="cards" *ngIf="!isLoading && restaurants.length > 0">
-    <div class="card" *ngFor="let r of restaurants; let i = index" 
-         [class.selected]="selectedIndex === i" (click)="selectCard(i)">
+    <div
+      class="card"
+      *ngFor="let r of restaurants; let i = index"
+      [class.selected]="selectedIndex === i"
+      (click)="selectCard(i)"
+    >
       <img [src]="r.image" alt="restaurant" />
       <div class="card-body">
         <h3>{{ r.name }}</h3>
+
         <div class="tags">
           <span *ngFor="let t of r.tags">#{{ t }}</span>
         </div>
+
         <p class="distance">📍 距離約 {{ r.distance }} km</p>
       </div>
     </div>
