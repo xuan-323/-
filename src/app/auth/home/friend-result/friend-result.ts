@@ -195,19 +195,20 @@ export class FriendResultComponent implements OnInit {
       console.log("選擇餐廳:", this.restaurant.name);
 
       const { data, error } = await this.supabase
-        .from('dining_requests')
-        .upsert(
-          {
-            user_id: user.id,
-            restaurant_id: this.restaurant.name,
-            dining_type: 'match',
-            status: 'waiting'
-          },
-          {
-            onConflict: 'user_id'
-          }
-        )
-        .select();
+  .from('dining_requests')
+  .upsert(
+    {
+      user_id: user.id,
+      restaurant_id: this.restaurant.name,
+      dining_type: 'match',   // ✅ 正確
+      status: 'waiting',     
+      created_at: new Date().toISOString() // ⭐ 建議加
+    },
+    {
+      onConflict: 'user_id'
+    }
+  )
+  .select();
 
       if (error) {
 

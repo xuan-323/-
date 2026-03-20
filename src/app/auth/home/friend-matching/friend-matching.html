@@ -1,41 +1,30 @@
-<div class="matching-container">
+<div class="page">
 
-  <!-- 等待配對 -->
-  <div *ngIf="candidates.length === 0" class="waiting">
+  <h1 class="title">🍽️ 食伴配對</h1>
 
-    <h2>🍜 食伴 Match</h2>
+  <div class="grid">
 
-    <p>正在幫你找適合的飯友...</p>
+    <div class="card" *ngFor="let user of users">
 
-    <div class="loader"></div>
+      <div class="avatar">👤</div>
 
-  </div>
+      <p>{{ user.user_id }}</p>
 
+      <!-- 未按 -->
+      <button 
+        *ngIf="!hasLiked(user)"
+        class="like"
+        (click)="likeUser(user)">
+        👍 喜歡
+      </button>
 
-  <!-- 配對成功 -->
-  <div *ngIf="candidates.length > 0">
-
-    <div *ngFor="let friend of candidates" class="card">
-
-      <img [src]="friend.avatar" class="avatar">
-
-      <h3>{{ friend.name }}</h3>
-
-      <p class="mbti">{{ friend.mbti }}</p>
-
-      <p class="intro">{{ friend.intro }}</p>
-
-      <div class="buttons">
-
-        <button class="like" (click)="likeFriend(friend)">
-          一起吃 🍜
-        </button>
-
-        <button class="chat" (click)="goToChat(friend)">
-          開始聊天 💬
-        </button>
-
-      </div>
+      <!-- 已按 -->
+      <button 
+        *ngIf="hasLiked(user)"
+        class="chat"
+        (click)="goChat(user)">
+        💬 開始聊天
+      </button>
 
     </div>
 

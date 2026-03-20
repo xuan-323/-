@@ -1,101 +1,45 @@
-<div class="chat-page">
+<div class="chat-wrapper">
 
-  <!-- 上方資訊 -->
-  <div class="topbar">
+  <!-- header -->
+  <div class="chat-header">
+    <div class="avatar">👤</div>
+    <div class="name">聊天室</div>
+  </div>
 
-    <div class="left">
+  <!-- 訊息區 -->
+  <div class="chat-body" #scrollMe>
 
-      <img
-        class="avatar"
-        [src]="friend?.avatar || 'https://i.pravatar.cc/100'"
-      />
+    <div *ngFor="let msg of messages; trackBy: trackById"
+      [ngClass]="msg.sender_id === currentUser.id ? 'msg me' : 'msg other'">
 
-      <div>
+      <!-- 對方頭像 -->
+      <div class="avatar" *ngIf="msg.sender_id !== currentUser.id">👤</div>
 
-        <div class="name">
-          {{friend?.name || '匿名使用者'}}
+      <div class="bubble">
+        <div class="text">{{ msg.content }}</div>
+        <div class="time">
+          {{ msg.created_at | date:'HH:mm' }}
         </div>
-
-        <div class="mbti">
-          {{friend?.mbti || '未知'}}
-        </div>
-
       </div>
 
     </div>
 
   </div>
 
-
-  <!-- 聊天訊息 -->
-  <div class="chat-body" #chatBox>
-
-    <div *ngFor="let msg of messages">
-
-      <!-- 我 -->
-      <div
-        *ngIf="msg.sender_id === userId"
-        class="bubble me"
-      >
-
-        {{msg.message}}
-
-        <div class="time">
-
-          {{msg.created_at | date:'HH:mm'}}
-
-          <span class="read">
-            {{msg.is_read ? '✓✓':'✓'}}
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <!-- 對方 -->
-      <div
-        *ngIf="msg.sender_id !== userId"
-        class="bubble friend"
-      >
-
-        {{msg.message}}
-
-        <div class="time">
-          {{msg.created_at | date:'HH:mm'}}
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- typing -->
-    <div *ngIf="typing" class="bubble friend typing">
-
-      <div class="dots">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- 輸入 -->
+  <!-- 輸入區 -->
   <div class="chat-input">
 
-    <input
-      [(ngModel)]="newMessage"
-      placeholder="輸入訊息..."
-      (input)="onTyping()"
-    />
+    <div class="emoji-bar">
+      <span (click)="addEmoji('😊')">😊</span>
+      <span (click)="addEmoji('😂')">😂</span>
+      <span (click)="addEmoji('❤️')">❤️</span>
+      <span (click)="addEmoji('👍')">👍</span>
+    </div>
 
-    <button (click)="sendMessage()">
-      發送
-    </button>
+    <div class="input-row">
+      <input [(ngModel)]="newMessage" placeholder="輸入訊息..." />
+      <button (click)="sendMessage()">送出</button>
+    </div>
 
   </div>
 

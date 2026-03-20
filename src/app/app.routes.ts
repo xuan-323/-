@@ -89,22 +89,21 @@ export const routes: Routes = [
 
   // ===== 聊天頁 =====
   {
-    path: 'friend/chat',
-    loadComponent: () =>
-      import('./friend-chat')
-        .then(m => m.FriendChatComponent),
-  },
-
+  path: 'friend/chat',
+  loadComponent: () =>
+    import('./friend-chat')
+      .then(m => m.ChatComponent),
+}
   // ===== 回饋頁 =====
-  {
+,{
     path: 'friend/feedback',
     loadComponent: () =>
       import('./friend-feedback')
         .then(m => m.FriendFeedbackComponent),
-  },
+  }
 
   // ===== Home =====
-  {
+  ,{
     path: 'home',
     loadComponent: () =>
       import('./auth/home/home.component')
