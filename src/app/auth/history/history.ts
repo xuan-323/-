@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 type HistorySoloItem = {
   type: 'solo';
@@ -34,14 +35,16 @@ export class HistoryComponent implements OnInit {
   soloList: HistorySoloItem[] = [];
   friendList: HistoryFriendItem[] = [];
 
+  constructor(private router: Router) {}
+
   ngOnInit(): void {
     this.loadSolo();
-    this.loadFriend(); // 先載入，切 tab 才不用等
+    this.loadFriend();
   }
 
   // ===== 自己吃 =====
   loadSolo() {
-    const raw = localStorage.getItem('history'); // 你目前用的 key
+    const raw = localStorage.getItem('history');
     this.soloList = raw ? JSON.parse(raw) : [];
     this.debugText = `solo=${this.soloList.length}, friend=${this.friendList.length}`;
   }
@@ -54,7 +57,7 @@ export class HistoryComponent implements OnInit {
 
   // ===== 找飯友 =====
   loadFriend() {
-    const raw = localStorage.getItem('history_friend'); // ✅ 找飯友我們用這個 key
+    const raw = localStorage.getItem('history_friend');
     this.friendList = raw ? JSON.parse(raw) : [];
     this.debugText = `solo=${this.soloList.length}, friend=${this.friendList.length}`;
   }
@@ -70,6 +73,11 @@ export class HistoryComponent implements OnInit {
     this.tab = t;
     if (t === 'solo') this.loadSolo();
     if (t === 'friend') this.loadFriend();
+  }
+
+  // ===== 回主頁 =====
+  goHome() {
+    this.router.navigate(['/home']);
   }
 
   // ===== 工具 =====

@@ -74,12 +74,17 @@
 
         <!-- 顯示聊天摘要 -->
         <div class="meta" *ngIf="it.chat && it.chat.length > 0">
-  🗨 共 {{ it.chat.length }} 則對話
-</div>
+          🗨 共 {{ it.chat.length }} 則對話
+        </div>
 
       </div>
     </div>
 
   </div>
+
+  <!-- 回主頁按鈕 -->
+  <button class="home-float-btn" (click)="goHome()" title="回到主頁">
+    🏠
+  </button>
 
 </div>
