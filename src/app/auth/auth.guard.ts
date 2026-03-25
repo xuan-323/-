@@ -2,11 +2,7 @@ import { inject } from '@angular/core';
 import { CanMatchFn, Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
 
-/**
- * Auth Guard
- * - 只保護「需要登入」的頁面（home / profile）
- * - 不保護 welcome（避免登入後第一跳被擋）
- */
+ 
 export const authGuard: CanMatchFn = async () => {
   const supabase = inject(SupabaseService);
   const router = inject(Router);

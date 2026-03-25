@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { createClient } from '@supabase/supabase-js';
+import { environment } from '../../environments/environment'; // 🔥 正確路徑
 
 @Component({
   standalone: true,
@@ -11,6 +13,13 @@ import { Router } from '@angular/router';
 })
 export class MbtiComponent {
 
+  // ===== Supabase =====
+  supabase = createClient(
+    environment.supabaseUrl,
+    environment.supabaseAnonKey
+  );
+
+  // ===== 選項 =====
   mbtis: string[] = [
     'INTJ','INTP','ENTJ','ENTP',
     'INFJ','INFP','ENFJ','ENFP',
@@ -46,18 +55,41 @@ export class MbtiComponent {
     this.selectedGender = gender;
   }
 
-  save() {
+  async save() {
     if (!this.selectedMbti || !this.selectedZodiac || !this.selectedGender) return;
 
-    // ✅ 暫存（下一步再改 Supabase）
-    localStorage.setItem('mbti', this.selectedMbti);
-    localStorage.setItem('zodiac', this.selectedZodiac);
-    localStorage.setItem('gender', this.selectedGender);
+    try {
+      const {
+        data: { user }
+      } = await this.supabase.auth.getUser();
 
-    console.log('MBTI:', this.selectedMbti);
-    console.log('星座:', this.selectedZodiac);
-    console.log('性別:', this.selectedGender);
+      if (!user) {
+        alert('請先登入');
+        return;
+      }
 
-    this.router.navigate(['/home']);
+      const { error } = await this.supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          mbti: this.selectedMbti,
+          zodiac: this.selectedZodiac,
+          gender: this.selectedGender
+        });
+
+      if (error) {
+        console.error(error);
+        alert('儲存失敗');
+        return;
+      }
+
+      console.log('儲存成功');
+
+      this.router.navigate(['/home']);
+
+    } catch (err) {
+      console.error(err);
+      alert('系統錯誤');
+    }
   }
 }
