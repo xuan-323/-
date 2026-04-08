@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../supabase.service';
+import { createClient } from '@supabase/supabase-js';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -15,6 +17,12 @@ export class LoginComponent {
   password = '';
   showPassword = false;
   isLoading = false;
+
+  // ⭐ 直接用 supabase client（不動你原本 service）
+  supabaseClient = createClient(
+    environment.supabaseUrl,
+    environment.supabaseAnonKey
+  );
 
   constructor(
     private supabase: SupabaseService,
@@ -47,7 +55,30 @@ export class LoginComponent {
       return;
     }
 
-    // ✅ 登入成功 → 先到 Welcome 頁
+    // ⭐ 取得登入後 user
+    const { data } = await this.supabaseClient.auth.getUser();
+    const user = data.user;
+
+    if (!user) {
+      this.router.navigate(['/welcome']);
+      return;
+    }
+
+    // ⭐ 檢查是否填過資料
+    const { data: profile } = await this.supabaseClient
+      .from('profiles')
+      .select('mbti, zodiac, gender')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    // ⭐ 存一個 flag（給 welcome 用）
+    if (!profile?.mbti || !profile?.zodiac || !profile?.gender) {
+      localStorage.setItem('need_profile', 'true');
+    } else {
+      localStorage.setItem('need_profile', 'false');
+    }
+
+    // ✅ 原本流程不動
     this.router.navigate(['/welcome']);
   }
 

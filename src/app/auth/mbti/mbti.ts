@@ -1,25 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { createClient } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { createClient } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment'; // 🔥 正確路徑
+import { environment } from '../../environments/environment';
 
 @Component({
-  standalone: true,
   selector: 'app-mbti',
+  standalone: true,
   imports: [CommonModule],
   templateUrl: './mbti.html',
-  styleUrls: ['./mbti.css'],
+  styleUrls: ['./mbti.css']
 })
-export class MbtiComponent {
+export class MbtiComponent implements OnInit {
 
-  // ===== Supabase =====
   supabase = createClient(
     environment.supabaseUrl,
     environment.supabaseAnonKey
   );
 
-  // ===== 選項 =====
+  constructor(private router: Router) {}
+
+  // =============================
+  // ⭐ 選項
+  // =============================
   mbtis: string[] = [
     'INTJ','INTP','ENTJ','ENTP',
     'INFJ','INFP','ENFJ','ENFP',
@@ -37,59 +40,94 @@ export class MbtiComponent {
     '男','女','其他','不公開'
   ];
 
-  selectedMbti: string | null = null;
-  selectedZodiac: string | null = null;
-  selectedGender: string | null = null;
+  // =============================
+  // ⭐ 使用者選擇
+  // =============================
+  selectedMbti: string = '';
+  selectedZodiac: string = '';
+  selectedGender: string = '';
 
-  constructor(private router: Router) {}
+  currentUser: any;
 
-  selectMbti(mbti: string) {
-    this.selectedMbti = mbti;
-  }
+  // =============================
+  // ⭐ 初始化（升級版🔥）
+  // =============================
+  async ngOnInit() {
 
-  selectZodiac(zodiac: string) {
-    this.selectedZodiac = zodiac;
-  }
+    const { data, error } = await this.supabase.auth.getUser();
 
-  selectGender(gender: string) {
-    this.selectedGender = gender;
-  }
-
-  async save() {
-    if (!this.selectedMbti || !this.selectedZodiac || !this.selectedGender) return;
-
-    try {
-      const {
-        data: { user }
-      } = await this.supabase.auth.getUser();
-
-      if (!user) {
-        alert('請先登入');
-        return;
-      }
-
-      const { error } = await this.supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          mbti: this.selectedMbti,
-          zodiac: this.selectedZodiac,
-          gender: this.selectedGender
-        });
-
-      if (error) {
-        console.error(error);
-        alert('儲存失敗');
-        return;
-      }
-
-      console.log('儲存成功');
-
-      this.router.navigate(['/home']);
-
-    } catch (err) {
-      console.error(err);
-      alert('系統錯誤');
+    if (error || !data.user) {
+      console.error('❌ 取得使用者失敗', error);
+      return;
     }
+
+    this.currentUser = data.user;
+
+    // ⭐ 先檢查是否已填過（關鍵🔥）
+    const { data: profile } = await this.supabase
+      .from('profiles')
+      .select('mbti, zodiac, gender')
+      .eq('id', this.currentUser.id)
+      .maybeSingle();
+
+    // ⭐ 如果已填過 → 直接跳過這頁
+    if (profile?.mbti && profile?.zodiac && profile?.gender) {
+      this.router.navigate(['/home']);
+      return;
+    }
+
+    // ⭐ 沒填才做回填（避免覆蓋空值）
+    if (profile) {
+      this.selectedMbti = profile.mbti || '';
+      this.selectedZodiac = profile.zodiac || '';
+      this.selectedGender = profile.gender || '';
+    }
+  }
+
+  // =============================
+  // ⭐ 選擇事件
+  // =============================
+  selectMbti(m: string) {
+    this.selectedMbti = m;
+  }
+
+  selectZodiac(z: string) {
+    this.selectedZodiac = z;
+  }
+
+  selectGender(g: string) {
+    this.selectedGender = g;
+  }
+
+  // =============================
+  // ⭐ 儲存資料
+  // =============================
+  async saveProfile() {
+
+    if (!this.selectedMbti || !this.selectedZodiac || !this.selectedGender) {
+      alert('請完整選擇所有項目');
+      return;
+    }
+
+    const { error } = await this.supabase
+      .from('profiles')
+      .upsert({
+        id: this.currentUser.id,
+        mbti: this.selectedMbti,
+        zodiac: this.selectedZodiac,
+        gender: this.selectedGender,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('❌ 儲存失敗', error);
+      alert('儲存失敗');
+      return;
+    }
+
+    alert('✅ 已儲存');
+
+    // ⭐ 導頁
+    this.router.navigate(['/home']);
   }
 }
