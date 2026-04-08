@@ -1,45 +1,30 @@
-<div class="chat-wrapper">
+<div class="chat-page">
 
-  <!-- header -->
   <div class="chat-header">
-    <div class="avatar">👤</div>
-    <div class="name">聊天室</div>
+    💬 聊天室
   </div>
 
-  <!-- 訊息區 -->
-  <div class="chat-body" #scrollMe>
+  <div class="chat-body">
 
-    <div *ngFor="let msg of messages; trackBy: trackById"
-      [ngClass]="msg.sender_id === currentUser.id ? 'msg me' : 'msg other'">
-
-      <!-- 對方頭像 -->
-      <div class="avatar" *ngIf="msg.sender_id !== currentUser.id">👤</div>
-
-      <div class="bubble">
-        <div class="text">{{ msg.content }}</div>
-        <div class="time">
-          {{ msg.created_at | date:'HH:mm' }}
-        </div>
-      </div>
-
+    <div
+      *ngFor="let msg of messages"
+      [class.me]="isMe(msg)"
+      [class.other]="!isMe(msg)"
+      class="message"
+    >
+      {{ msg.content }}
     </div>
 
   </div>
 
-  <!-- 輸入區 -->
   <div class="chat-input">
 
-    <div class="emoji-bar">
-      <span (click)="addEmoji('😊')">😊</span>
-      <span (click)="addEmoji('😂')">😂</span>
-      <span (click)="addEmoji('❤️')">❤️</span>
-      <span (click)="addEmoji('👍')">👍</span>
-    </div>
+    <input
+      [(ngModel)]="newMessage"
+      placeholder="輸入訊息..."
+    />
 
-    <div class="input-row">
-      <input [(ngModel)]="newMessage" placeholder="輸入訊息..." />
-      <button (click)="sendMessage()">送出</button>
-    </div>
+    <button (click)="sendMessage()">送出</button>
 
   </div>
 

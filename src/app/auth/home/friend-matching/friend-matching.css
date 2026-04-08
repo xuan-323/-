@@ -10,8 +10,11 @@
 .title {
   font-size: 28px;
   margin-bottom: 20px;
+  font-weight: bold;
+  color: #333;
 }
 
+/* 網格 */
 .grid {
   width: 100%;
   max-width: 900px;
@@ -20,30 +23,64 @@
   gap: 20px;
 }
 
+/* 卡片 */
 .card {
   background: white;
   padding: 20px;
   border-radius: 15px;
   text-align: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
 }
 
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* 頭像（重點🔥） */
 .avatar {
-  font-size: 40px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+  border: 3px solid #f7b267;
 }
 
+/* 名字 */
+.username {
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* 按鈕共用 */
 button {
   margin-top: 10px;
   padding: 10px;
   border: none;
   border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
 }
 
+/* 喜歡按鈕 */
 .like {
-  background: red;
+  background: #ff5a5f;
   color: white;
 }
 
+.like:hover {
+  background: #ff2e33;
+}
+
+/* 聊天按鈕 */
 .chat {
-  background: blue;
+  background: #3b82f6;
   color: white;
+}
+
+.chat:hover {
+  background: #2563eb;
 }

@@ -6,21 +6,28 @@
 
     <div class="card" *ngFor="let user of users">
 
-      <div class="avatar">👤</div>
+      <!-- 頭像 -->
+      <img
+        class="avatar"
+        [src]="getAvatar(user.profiles?.avatar_url, user.profiles?.username)"
+      />
 
-      <p>{{ user.user_id }}</p>
+      <!-- 名字 -->
+      <p class="username">
+        {{ user.profiles?.username || '使用者' }}
+      </p>
 
-      <!-- 未按 -->
+      <!-- 未配對 -->
       <button 
-        *ngIf="!hasLiked(user)"
+        *ngIf="!isMatched(user)"
         class="like"
         (click)="likeUser(user)">
         👍 喜歡
       </button>
 
-      <!-- 已按 -->
+      <!-- 已配對 -->
       <button 
-        *ngIf="hasLiked(user)"
+        *ngIf="isMatched(user)"
         class="chat"
         (click)="goChat(user)">
         💬 開始聊天

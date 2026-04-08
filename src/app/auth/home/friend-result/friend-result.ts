@@ -176,62 +176,81 @@ export class FriendResultComponent implements OnInit {
   // =============================
   // 確認餐廳
   // =============================
-  async confirm() {
+async confirm() {
 
-    if (!this.selected || !this.restaurant) return;
+  if (!this.selected || !this.restaurant) return;
 
-    try {
+  try {
 
-      const { data: { session } } = await this.supabase.auth.getSession();
+    const { data: { session } } = await this.supabase.auth.getSession();
 
-      if (!session) {
-        console.error("沒有 session");
-        return;
-      }
-
-      const user = session.user;
-
-      console.log("登入 user:", user.id);
-      console.log("選擇餐廳:", this.restaurant.name);
-
-      const { data, error } = await this.supabase
-  .from('dining_requests')
-  .upsert(
-    {
-      user_id: user.id,
-      restaurant_id: this.restaurant.name,
-      dining_type: 'match',   // ✅ 正確
-      status: 'waiting',     
-      created_at: new Date().toISOString() // ⭐ 建議加
-    },
-    {
-      onConflict: 'user_id'
+    if (!session) {
+      console.error("沒有 session");
+      return;
     }
-  )
-  .select();
 
-      if (error) {
+    const user = session.user;
 
-        console.error("Supabase error:", error);
-        return;
-
-      }
-
-      console.log("成功寫入 dining_requests:", data);
-
-      this.router.navigate(['/friend/matching'], {
-        state: {
-          restaurant: this.restaurant,
-          tag: this.selectedTag
+    // =============================
+    // ⭐ 1️⃣ 先寫入 restaurants（或取得已存在）
+    // =============================
+    const { data: restaurantData, error: restaurantError } = await this.supabase
+      .from('restaurants')
+      .upsert(
+        {
+          name: this.restaurant.name,
+          // 👉 建議之後加 place_id（更穩）
+          // place_id: this.restaurant.place_id
+        },
+        {
+          onConflict: 'name' // ⚠️ 需要 unique(name)
         }
-      });
+      )
+      .select()
+      .single();
 
-    } catch (err) {
-
-      console.error("系統錯誤:", err);
-
+    if (restaurantError || !restaurantData) {
+      console.error("餐廳寫入錯誤:", restaurantError);
+      return;
     }
+
+    // =============================
+    // ⭐ 2️⃣ 再寫 dining_requests（用 uuid）
+    // =============================
+    const { data, error } = await this.supabase
+      .from('dining_requests')
+      .upsert(
+        {
+          user_id: user.id,
+          restaurant_id: restaurantData.id, // ✅ 正確！
+          dining_type: 'match',
+          status: 'active',
+          created_at: new Date().toISOString()
+        },
+        {
+          onConflict: 'user_id'
+        }
+      )
+      .select();
+
+    if (error) {
+      console.error("Supabase error:", error);
+      return;
+    }
+
+    console.log("成功寫入 dining_requests:", data);
+
+    this.router.navigate(['/friend/matching'], {
+      state: {
+        restaurant: this.restaurant,
+        tag: this.selectedTag
+      }
+    });
+
+  } catch (err) {
+
+    console.error("系統錯誤:", err);
 
   }
 
-}
+}}
