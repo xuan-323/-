@@ -1,6 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { createClient } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+
+const supabase = createClient(
+  'https://hamijkpsjaxltifhrppw.supabase.co',
+  'sb_publishable_LataTu72rxsmn883jnvjgw_af3rtxRt'
+);
 
 @Component({
   selector: 'app-friend-matching',
@@ -9,209 +15,160 @@ import { CommonModule } from '@angular/common';
   templateUrl: './friend-matching.html',
   styleUrls: ['./friend-matching.css']
 })
-export class FriendMatchingComponent implements OnInit {
-
-  supabase = createClient(
-    'https://hamijkpsjaxltifhrppw.supabase.co',
-    'sb_publishable_LataTu72rxsmn883jnvjgw_af3rtxRt'
-  );
-
-  constructor(private cdr: ChangeDetectorRef) {}
+export class FriendMatchingComponent implements OnInit, OnDestroy {
 
   currentUser: any;
   users: any[] = [];
-  likes: any[] = [];
   matches: any[] = [];
-  myRequest: any = null; 
+  myRequest: any = null;
+  private channel: any;
+  private intervalId: any;
+
+  constructor(private cdr: ChangeDetectorRef, private router: Router) {}
 
   async ngOnInit() {
     await this.init();
+
+    // 心跳機制：每 30 秒更新一次自己的在線狀態
+    this.intervalId = setInterval(async () => {
+      if (this.currentUser) {
+        await supabase
+          .from('dining_requests')
+          .update({ last_active: new Date().toISOString() })
+          .eq('user_id', this.currentUser.id);
+      }
+    }, 30000);
+  }
+
+  ngOnDestroy() {
+    if (this.channel) supabase.removeChannel(this.channel);
+    if (this.intervalId) clearInterval(this.intervalId);
   }
 
   async init() {
-    const { data, error } = await this.supabase.auth.getUser();
-    if (error || !data.user) return;
-
-    this.currentUser = data.user;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    this.currentUser = user;
 
     await this.loadMyRequest();
-    await this.loadUsers();
-    await this.loadLikes();
-    await this.loadMatches();
+
+    if (this.myRequest) {
+      // 進入時立刻更新一次狀態
+      await supabase
+        .from('dining_requests')
+        .update({ last_active: new Date().toISOString() })
+        .eq('user_id', this.currentUser.id);
+
+      await Promise.all([
+        this.loadUsers(),
+        this.loadMatches()
+      ]);
+      this.setupRealtime();
+    }
+    this.cdr.detectChanges();
   }
 
-  // =============================
-  // ⭐ 優化 1：取得自己「最新一筆」請求
-  // =============================
+  setupRealtime() {
+    if (this.channel) supabase.removeChannel(this.channel);
+    this.channel = supabase
+      .channel('sync-matches')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'matches' },
+        () => this.loadMatches()
+      )
+      .subscribe();
+  }
+
   async loadMyRequest() {
-    const { data } = await this.supabase
+    const { data } = await supabase
       .from('dining_requests')
       .select('*')
       .eq('user_id', this.currentUser.id)
       .eq('dining_type', 'match')
-      .order('created_at', { ascending: false }) // 排序：最新在最前
-      .limit(1) // 只取一筆
       .maybeSingle();
-    
     this.myRequest = data;
   }
 
-  // =============================
-  // ⭐ 載入配對用戶
-  // =============================
   async loadUsers() {
     if (!this.myRequest) return;
 
-    // 5 分鐘內的有效請求
-    const fiveMin = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    // 關鍵：只抓取「1分鐘內」有活動的用戶，過濾離線用戶
+    const onlineThreshold = new Date(Date.now() - 60 * 1000).toISOString();
 
-    const { data, error } = await this.supabase
+    const { data } = await supabase
       .from('dining_requests')
-      .select(`
-        *,
-        profiles (
-          username,
-          avatar_url
-        )
-      `)
+      .select('*, profiles(username, avatar_url)')
       .eq('dining_type', 'match')
       .eq('restaurant_id', this.myRequest.restaurant_id)
-      .gte('created_at', fiveMin)
-      .order('created_at', { ascending: false }); // 對方也要是最新請求
+      .gte('last_active', onlineThreshold);
 
-    if (error) {
-      console.error('❌ loadUsers 錯誤:', error.message);
-      return;
-    }
-
-    // 這裡使用 filter 確保畫面上不會出現同一個人的重複請求 (如果資料庫沒清乾淨)
-    const uniqueUsers: any[] = [];
-    const seenIds = new Set();
-    
-    (data || []).forEach(u => {
-      if (u.user_id !== this.currentUser.id && !seenIds.has(u.user_id)) {
-        uniqueUsers.push(u);
-        seenIds.add(u.user_id);
-      }
-    });
-
-    this.users = uniqueUsers;
+    this.users = (data || []).filter(u => u.user_id !== this.currentUser.id);
     this.cdr.detectChanges();
   }
 
-  async loadLikes() {
-    const { data } = await this.supabase
-      .from('likes')
-      .select('*')
-      .eq('user_id', this.currentUser.id);
-    this.likes = data || [];
-  }
-
   async loadMatches() {
-    const { data } = await this.supabase
+    // 抓取所有跟我有關的成功配對
+    const { data } = await supabase
       .from('matches')
       .select('*')
-      .or(`user_a_id.eq.${this.currentUser.id},user_b_id.eq.${this.currentUser.id}`);
+      .or(`user_a_id.eq.${this.currentUser.id},user_b_id.eq.${this.currentUser.id}`)
+      .eq('status', 'matched');
+
     this.matches = data || [];
+    this.cdr.detectChanges();
   }
 
-  getAvatar(url: string | null, username: string | null) {
-    if (!url || url === 'default') {
-      return `https://api.dicebear.com/7.x/initials/svg?seed=${username || 'user'}`;
-    }
-    return url;
-  }
-
+  // 嚴謹判定：目前卡片上的 user 是否跟我配對成功
   isMatched(user: any): boolean {
-    return this.matches.some(m =>
+    return this.matches.some(m => 
       (m.user_a_id === this.currentUser.id && m.user_b_id === user.user_id) ||
       (m.user_b_id === this.currentUser.id && m.user_a_id === user.user_id)
     );
   }
 
-  // =============================
-  // ⭐ 核心配對邏輯：雙向最新一筆卡控
-  // =============================
   async likeUser(user: any) {
-    // 1️⃣ 檢查自己 (再次確保狀態最新)
-    await this.loadMyRequest();
-    if (!this.myRequest) {
-      alert('您的請求已過期，請重新選擇餐廳！');
-      window.location.href = '/auth/preference'; 
-      return;
-    }
-
-    // 2️⃣ 檢查重複 Like
-    const { data: exist } = await this.supabase
-      .from('likes')
-      .select('*')
-      .eq('user_id', this.currentUser.id)
-      .eq('target_user_id', user.user_id)
-      .maybeSingle();
-
-    if (exist) {
-      alert('已經點過喜歡囉！');
-      return;
-    }
-
-    // 3️⃣ 執行 Like
-    await this.supabase.from('likes').insert({
+    // 1. 送出喜歡
+    const { error: likeError } = await supabase.from('likes').upsert({
       user_id: this.currentUser.id,
       target_user_id: user.user_id
     });
 
-    // 4️⃣ 檢查對方是否也 Like 我
-    const { data: mutual } = await this.supabase
+    if (likeError) return;
+
+    // 2. 檢查對方是否也喜歡我
+    const { data: mutual } = await supabase
       .from('likes')
       .select('*')
       .eq('user_id', user.user_id)
       .eq('target_user_id', this.currentUser.id)
       .maybeSingle();
 
-    if (!mutual) {
-      alert('👍 已傳達你的喜歡！');
-      return;
-    }
+    if (mutual) {
+      const [id1, id2] = [this.currentUser.id, user.user_id].sort();
+      const { error: matchError } = await supabase.from('matches').upsert({
+        user_a_id: id1,
+        user_b_id: id2,
+        status: 'matched'
+      });
 
-    // 5️⃣ ⭐ 優化 2：取得對方「最新一筆」有效請求
-    const { data: targetRequest } = await this.supabase
-      .from('dining_requests')
-      .select('*')
-      .eq('user_id', user.user_id)
-      .eq('dining_type', 'match')
-      .order('created_at', { ascending: false }) // 最新優先
-      .limit(1)
-      .maybeSingle();
-
-    if (!targetRequest) {
-      alert('對方目前沒有有效的餐廳請求');
-      return;
-    }
-
-    // 6️⃣ 終極餐廳比對
-    if (this.myRequest.restaurant_id !== targetRequest.restaurant_id) {
-      alert('配對失敗：對方的餐廳選擇已變更！');
-      return;
-    }
-
-    // 7️⃣ 建立 Match
-    const { error: matchError } = await this.supabase.from('matches').insert({
-      user_a_id: this.currentUser.id,
-      user_b_id: user.user_id,
-      status: 'matched',
-      created_at: new Date().toISOString()
-    });
-
-    if (!matchError) {
-      alert('🎉 餐廳選擇一致，配對成功！');
-      await this.loadMatches(); 
+      if (!matchError) {
+        alert('🎉 配對成功！');
+        await this.loadMatches();
+      }
     } else {
-      console.error('建立配對失敗', matchError);
+      alert('👍 已送出喜歡');
     }
   }
 
   goChat(user: any) {
-    localStorage.setItem('chat_target', user.user_id);
-    window.location.href = '/friend/chat';
+    // 關鍵：改用網址傳遞 ID，不再依賴 localStorage
+    this.router.navigate(['/friend/chat', user.user_id]);
+  }
+
+  getAvatar(url: string | null, username: string | null) {
+    return (!url || url === 'default')
+      ? `https://api.dicebear.com/7.x/initials/svg?seed=${username || 'user'}`
+      : url;
   }
 }

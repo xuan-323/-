@@ -1,40 +1,39 @@
 <div class="page">
-
-  <h1 class="title">🍽️ 食伴配對</h1>
-
-  <div class="grid">
-
-    <div class="card" *ngFor="let user of users">
-
-      <!-- 頭像 -->
-      <img
-        class="avatar"
-        [src]="getAvatar(user.profiles?.avatar_url, user.profiles?.username)"
-      />
-
-      <!-- 名字 -->
-      <p class="username">
-        {{ user.profiles?.username || '使用者' }}
-      </p>
-
-      <!-- 未配對 -->
-      <button 
-        *ngIf="!isMatched(user)"
-        class="like"
-        (click)="likeUser(user)">
-        👍 喜歡
-      </button>
-
-      <!-- 已配對 -->
-      <button 
-        *ngIf="isMatched(user)"
-        class="chat"
-        (click)="goChat(user)">
-        💬 開始聊天
-      </button>
-
-    </div>
-
+  <div class="header-box">
+    <h1 class="title">🍽️ 食伴配對</h1>
+    <button class="refresh-btn" (click)="init()">🔄 刷新列表</button>
   </div>
 
+  <div *ngIf="users.length === 0" class="empty-state">
+    <p>正在尋找想吃這間餐廳的小夥伴...</p>
+  </div>
+
+  <div class="grid">
+    <div class="card" *ngFor="let user of users">
+      <div class="avatar-container">
+        <img class="avatar" [src]="getAvatar(user.profiles?.avatar_url, user.profiles?.username)" />
+      </div>
+
+      <p class="status-text">
+        {{ isMatched(user) ? '✅ 已經配對成功' : '⏳ 等待對方喜歡' }}
+      </p>
+      <p class="username">{{ user.profiles?.username || '使用者' }}</p>
+
+      <div class="action-zone">
+        <button 
+          *ngIf="!isMatched(user)" 
+          class="btn-like" 
+          (click)="likeUser(user)">
+          👍 點擊喜歡
+        </button>
+        
+        <button 
+          *ngIf="isMatched(user)" 
+          class="btn-chat" 
+          (click)="goChat(user)">
+          💬 開始聊天
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

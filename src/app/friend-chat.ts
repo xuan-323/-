@@ -2,15 +2,15 @@ import { Component, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewChecked }
 import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
-// 定義訊息資料結構，解決 ts(4111) 錯誤
 interface Message {
   id: string | number;
   sender_id: string;
   receiver_id: string;
   content: string;
   created_at: string;
-  isTemp?: boolean; // 標記是否為樂觀更新的暫時訊息
+  isTemp?: boolean;
 }
 
 @Component({
@@ -21,6 +21,7 @@ interface Message {
   styleUrls: ['./friend-chat.css']
 })
 export class FriendChatComponent implements OnInit, OnDestroy, AfterViewChecked {
+
   @ViewChild('scrollMe') private myScrollContainer!: ElementRef;
 
   supabase = createClient(
@@ -34,20 +35,28 @@ export class FriendChatComponent implements OnInit, OnDestroy, AfterViewChecked 
   newMessage: string = '';
   private subscription: RealtimeChannel | null = null;
 
+  constructor(private route: ActivatedRoute, private router: Router) {}
+
   async ngOnInit() {
+    // 1. 取得當前使用者
     const { data } = await this.supabase.auth.getUser();
+    if (!data.user) {
+      this.router.navigate(['/login']);
+      return;
+    }
     this.currentUser = data.user;
-    this.targetUserId = localStorage.getItem('chat_target');
+
+    // 2. 關鍵：直接從網址參數取得 target ID
+    this.targetUserId = this.route.snapshot.paramMap.get('id');
 
     if (!this.targetUserId) {
-      console.error('❌ 沒有對話對象');
+      alert('無效的對話對象');
+      this.router.navigate(['/friend/matching']);
       return;
     }
 
-    if (this.currentUser) {
-      await this.loadMessages();
-      this.listenMessages();
-    }
+    await this.loadMessages();
+    this.listenMessages();
   }
 
   ngOnDestroy() {
@@ -62,49 +71,49 @@ export class FriendChatComponent implements OnInit, OnDestroy, AfterViewChecked 
 
   scrollToBottom(): void {
     try {
-      this.myScrollContainer.nativeElement.scrollTop = this.myScrollContainer.nativeElement.scrollHeight;
+      this.myScrollContainer.nativeElement.scrollTop =
+        this.myScrollContainer.nativeElement.scrollHeight;
     } catch (err) {}
   }
 
-  // =============================
-  // ⭐ 載入訊息
-  // =============================
   async loadMessages() {
     const { data } = await this.supabase
       .from('messages')
       .select('*')
-      .or(`and(sender_id.eq.${this.currentUser.id},receiver_id.eq.${this.targetUserId}),and(sender_id.eq.${this.targetUserId},receiver_id.eq.${this.currentUser.id})`)
+      .or(
+        `and(sender_id.eq.${this.currentUser.id},receiver_id.eq.${this.targetUserId}),and(sender_id.eq.${this.targetUserId},receiver_id.eq.${this.currentUser.id})`
+      )
       .order('created_at', { ascending: true });
 
     this.messages = data || [];
   }
 
-  // =============================
-  // ⭐ 即時監聽 (優化過濾與重複處理)
-  // =============================
   listenMessages() {
-    // 建立唯一的頻道名稱
-    const channelName = `chat-${this.currentUser.id}-${this.targetUserId}`;
-    
+    // 使用唯一的頻道名稱
+    const channelName = `chat_${[this.currentUser.id, this.targetUserId].sort().join('_')}`;
+
     this.subscription = this.supabase
       .channel(channelName)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        },
         (payload) => {
           const newMsg = payload.new as Message;
 
-          // 判斷這則訊息是否屬於當前對話
+          // 嚴謹過濾：確保訊息是發給我，且來自當前對話對象
           const isRelevant =
-            (newMsg.sender_id === this.currentUser.id && newMsg.receiver_id === this.targetUserId) ||
-            (newMsg.sender_id === this.targetUserId && newMsg.receiver_id === this.currentUser.id);
+            (newMsg.sender_id === this.targetUserId && newMsg.receiver_id === this.currentUser.id) ||
+            (newMsg.sender_id === this.currentUser.id && newMsg.receiver_id === this.targetUserId);
 
           if (isRelevant) {
-            // ⭐ 重要：檢查訊息是否已存在（避免樂觀更新與 Realtime 重複顯示）
             const exists = this.messages.some(m => m.id === newMsg.id);
             if (!exists) {
-              // 如果是自己發出的，嘗試替換掉暫時訊息；如果是對方發出的，直接推入
               this.messages.push(newMsg);
+              setTimeout(() => this.scrollToBottom(), 50);
             }
           }
         }
@@ -112,16 +121,12 @@ export class FriendChatComponent implements OnInit, OnDestroy, AfterViewChecked 
       .subscribe();
   }
 
-  // =============================
-  // ⭐ 發送訊息 (樂觀更新版)
-  // =============================
   async sendMessage() {
     if (!this.newMessage.trim() || !this.currentUser || !this.targetUserId) return;
 
     const contentToSend = this.newMessage;
-    this.newMessage = ''; 
+    this.newMessage = '';
 
-    // 1. 建立樂觀更新的暫時訊息 (立即顯示)
     const tempId = 'temp-' + Date.now();
     const temporaryMsg: Message = {
       id: tempId,
@@ -131,10 +136,10 @@ export class FriendChatComponent implements OnInit, OnDestroy, AfterViewChecked 
       created_at: new Date().toISOString(),
       isTemp: true
     };
-    
-    this.messages.push(temporaryMsg);
 
-    // 2. 異步發送到 Supabase
+    this.messages.push(temporaryMsg);
+    this.scrollToBottom();
+
     const { data, error } = await this.supabase
       .from('messages')
       .insert({
@@ -147,11 +152,9 @@ export class FriendChatComponent implements OnInit, OnDestroy, AfterViewChecked 
 
     if (error) {
       console.error('發送失敗:', error);
-      // 失敗時移除暫時訊息並復原輸入框
       this.messages = this.messages.filter(m => m.id !== tempId);
       this.newMessage = contentToSend;
     } else if (data) {
-      // 3. 用正式資料替換暫時資料，確保 ID 正確
       const index = this.messages.findIndex(m => m.id === tempId);
       if (index !== -1) {
         this.messages[index] = data as Message;
