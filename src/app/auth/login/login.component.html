@@ -149,6 +149,65 @@
         </button>
       </div>
 
+      <!-- 🔍 測試用: 顯示所有用戶列表 -->
+      <div style="border-top: 1px solid #EFEBE9; margin-top: 12px; padding-top: 12px;">
+        <button
+          type="button"
+          (click)="toggleUserList()"
+          style="
+            width: 100%;
+            padding: 10px;
+            background: #F5F5F5;
+            color: #8D6E63;
+            font-weight: bold;
+            border: 1px solid #EFEBE9;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+          "
+        >
+          {{ showUsers ? '隱藏' : '顯示' }} 可用帳號 ({{ allUsers.length }})
+        </button>
+
+        <!-- 用戶列表 -->
+        <div *ngIf="showUsers && allUsers.length > 0" 
+             style="
+               margin-top: 10px;
+               max-height: 200px;
+               overflow-y: auto;
+               border: 1px solid #EFEBE9;
+               border-radius: 8px;
+               background: #FFFBF7;
+             ">
+          <div *ngFor="let user of allUsers"
+               (click)="quickLogin(user.email)"
+               style="
+                 padding: 10px 12px;
+                 border-bottom: 1px solid #EFEBE9;
+                 cursor: pointer;
+                 transition: 0.2s;
+                 font-size: 12px;
+               "
+               onmouseover="this.style.background='#FFE0B2'"
+               onmouseout="this.style.background='transparent'"
+          >
+            <div style="color: #5D4037; font-weight: bold;">{{ user.username }}</div>
+            <div style="color: #8D6E63; font-size: 11px;">{{ user.email }}</div>
+            <div style="color: #BCAAA4; font-size: 10px;">MBTI: {{ user.mbti }}</div>
+          </div>
+        </div>
+
+        <div *ngIf="showUsers && allUsers.length === 0"
+             style="
+               padding: 20px;
+               text-align: center;
+               color: #BCAAA4;
+               font-size: 12px;
+             ">
+          暫無用戶資料
+        </div>
+      </div>
+
     </form>
 
   </div>

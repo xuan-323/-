@@ -17,6 +17,8 @@ export class LoginComponent {
   password = '';
   showPassword = false;
   isLoading = false;
+  showUsers = false;  // 🔍 控制用戶列表顯示
+  allUsers: any[] = [];  // 🔍 存放所有用戶
 
   // ⭐ 直接用 supabase client（不動你原本 service）
   supabaseClient = createClient(
@@ -27,7 +29,51 @@ export class LoginComponent {
   constructor(
     private supabase: SupabaseService,
     private router: Router
-  ) {}
+  ) {
+    this.loadAllUsers();  // 🔍 頁面載入時獲取所有用戶
+  }
+
+  // 🔍 獲取所有用戶列表（用於本地測試）
+  async loadAllUsers(): Promise<void> {
+    try {
+      // 從 profiles 表查詢所有用戶
+      const { data: profiles, error } = await this.supabaseClient
+        .from('profiles')
+        .select('*');
+      
+      if (error) {
+        console.error('❌ 獲取用戶列表失敗:', error);
+        return;
+      }
+
+      if (profiles && profiles.length > 0) {
+        this.allUsers = profiles.map((profile: any) => ({
+          id: profile.id,
+          email: profile.id,  // UUID 作為臨時ID顯示
+          username: profile.username || '未設置',
+          mbti: profile.mbti || '未設置',
+          avatar: profile.avatar_url || '無',
+          created_at: profile.created_at
+        }));
+        
+        console.log('✅ 已加載用戶列表:', this.allUsers);
+      }
+    } catch (error) {
+      console.error('❌ 加載用戶列表異常:', error);
+    }
+  }
+
+  // 🔍 切換用戶列表顯示
+  toggleUserList(): void {
+    this.showUsers = !this.showUsers;
+  }
+
+  // 🔍 快速登入指定用戶
+  async quickLogin(email: string, password: string = 'Test123456'): Promise<void> {
+    this.email = email;
+    this.password = password;
+    await this.handleLogin();
+  }
 
   // 👁️ 切換密碼顯示
   togglePasswordVisibility(): void {
