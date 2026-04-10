@@ -90,36 +90,39 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   async findCandidates() {
     if (!this.currentUserId) return;
 
-    console.log('目前 restaurant:', this.restaurant);
-    console.log('目前 restaurant.name:', this.restaurant?.name);
+    console.log('🔍 查詢候選人:', { restaurant: this.restaurant?.name, currentUserId: this.currentUserId });
 
     if (!this.restaurant?.name) {
-      console.error('restaurant.name 不存在，查不到候選人', this.restaurant);
+      console.error('❌ 餐廳名稱不存在，查不到候選人', this.restaurant);
       this.candidates = [];
       this.cdr.detectChanges();
       return;
     }
 
+    // 查詢同一餐廳的其他用戶
     const { data, error } = await this.supabase
       .from('dining_requests')
       .select(`
         user_id,
         restaurant_id,
+        restaurant_name,
         profiles (
+          id,
           username,
           mbti,
           avatar_url
         )
       `)
-      .neq('user_id', this.currentUserId)
+      .eq('restaurant_name', this.restaurant.name)  // 同一餐廳
+      .neq('user_id', this.currentUserId)  // 排除自己
       .limit(5);
 
     if (error) {
-      console.error('找候選人錯誤', error);
+      console.error('❌ 找候選人錯誤:', error);
       return;
     }
 
-    console.log('候選人查詢結果:', data);
+    console.log('📊 候選人查詢結果:', data);
 
     if (!data || data.length === 0) {
       this.candidates = [];
@@ -129,14 +132,17 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.candidates = data.map((user: any) => ({
-      user_id: user.user_id,
-      name: user.profiles?.[0]?.username ?? '未命名使用者',
-      mbti: user.profiles?.[0]?.mbti ?? '未知',
-      avatar: user.profiles?.[0]?.avatar_url ?? 'https://i.pravatar.cc/300?img=32',
-      intro: '一起吃飯吧！'
+    // 組裝候選人資料，確保使用真實資訊
+    this.candidates = data.map((dining: any) => ({
+      user_id: dining.user_id,
+      name: dining.profiles?.[0]?.username ?? '未命名使用者',
+      mbti: dining.profiles?.[0]?.mbti ?? '未知',
+      avatar: dining.profiles?.[0]?.avatar_url ?? `https://i.pravatar.cc/300?img=32&seed=${dining.user_id}`,
+      intro: '一起吃飯吧！',
+      restaurant_name: dining.restaurant_name
     }));
 
+    console.log('✅ 已加載 ' + this.candidates.length + ' 位候選人');
     this.cdr.detectChanges();
   }
 
@@ -201,17 +207,28 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     const otherUserId =
       match.user_a_id === this.currentUserId ? match.user_b_id : match.user_a_id;
 
-    const friend =
-      this.candidates.find(c => c.user_id === otherUserId) ?? {
+    // 先從候選人列表查找
+    let friend = this.candidates.find(c => c.user_id === otherUserId);
+
+    // 如果候選人列表中沒有，從資料庫直接查詢真實資訊
+    if (!friend) {
+      const { data: profileData } = await this.supabase
+        .from('profiles')
+        .select('username, mbti, avatar_url')
+        .eq('id', otherUserId)
+        .single();
+
+      friend = {
         user_id: otherUserId,
-        name: '配對成功的飯友',
-        mbti: '未知',
-        avatar: 'https://i.pravatar.cc/300?img=32',
+        name: profileData?.username ?? '配對成功的飯友',
+        mbti: profileData?.mbti ?? '未知',
+        avatar: profileData?.avatar_url ?? 'https://i.pravatar.cc/300?img=32',
         intro: '一起吃飯吧！',
         match_id: match.id
       };
-
-    friend.match_id = match.id;
+    } else {
+      friend.match_id = match.id;
+    }
 
     this.matchedFriend = friend;
     this.isMatched = true;
@@ -219,6 +236,7 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
 
     localStorage.setItem('friend_current', JSON.stringify(friend));
 
+    console.log('✅ 配對成功，朋友資訊:', friend);
     this.cdr.detectChanges();
   }
 
