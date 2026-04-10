@@ -1,0 +1,43 @@
+.thanks-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #f7cfd4, #f6b6c1);
+  box-sizing: border-box;
+}
+
+.thanks-card {
+  width: min(420px, 92vw);
+  background: rgba(255,255,255,0.94);
+  border-radius: 24px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.subtitle {
+  color: #555;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.home-btn {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: #ff9f43;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(255, 159, 67, 0.25);
+}

@@ -1,217 +1,234 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { createClient } from '@supabase/supabase-js';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { createClient } from '@supabase/supabase-js';
+import { environment } from '../../../environments/environment';
 
 @Component({
-  selector: 'app-friend-matching',
   standalone: true,
+  selector: 'app-friend-matching',
   imports: [CommonModule],
   templateUrl: './friend-matching.html',
-  styleUrls: ['./friend-matching.css']
+  styleUrls: ['./friend-matching.css'],
 })
-export class FriendMatchingComponent implements OnInit {
+export class FriendMatchingComponent implements OnInit, OnDestroy {
 
-  supabase = createClient(
-    'https://hamijkpsjaxltifhrppw.supabase.co',
-    'sb_publishable_LataTu72rxsmn883jnvjgw_af3rtxRt'
+  private supabase = createClient(
+    environment.supabaseUrl,
+    environment.supabaseAnonKey
   );
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  tag = history.state?.tag ?? null;
+  restaurant = history.state?.restaurant ?? null;
 
-  currentUser: any;
-  users: any[] = [];
-  likes: any[] = [];
-  matches: any[] = [];
-  myRequest: any = null; 
+  candidates: any[] = [];
+  currentUserId: string | null = null;
+
+  // 前端流程狀態
+  isWaiting = true;
+  isMatched = false;
+  matchedFriend: any = null;
+
+  // 輪詢用
+  private pollingId: any = null;
+
+  constructor(
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
-    await this.init();
+    // 如果重整頁面，嘗試從 localStorage 補餐廳
+    if (!this.restaurant) {
+      const raw = localStorage.getItem('friend_current_restaurant');
+      this.restaurant = raw ? JSON.parse(raw) : null;
+    }
+
+    const { data: { user } } = await this.supabase.auth.getUser();
+
+    if (!user) {
+      console.error('抓不到登入使用者');
+      return;
+    }
+
+    this.currentUserId = user.id;
+
+    // 先載入候選人
+    await this.findCandidates();
+
+    // 先檢查一次是否已有 match
+    await this.checkMatch();
+
+    // 每 3 秒檢查一次配對狀態
+    this.pollingId = setInterval(async () => {
+      await this.checkMatch();
+    }, 3000);
   }
 
-  async init() {
-    const { data, error } = await this.supabase.auth.getUser();
-    if (error || !data.user) return;
+  async findCandidates() {
+    if (!this.currentUserId) return;
 
-    this.currentUser = data.user;
+    console.log('目前 restaurant:', this.restaurant);
+    console.log('目前 restaurant.name:', this.restaurant?.name);
 
-    await this.loadMyRequest();
-    await this.loadUsers();
-    await this.loadLikes();
-    await this.loadMatches();
-  }
-
-  // =============================
-  // ⭐ 優化 1：取得自己「最新一筆」請求
-  // =============================
-  async loadMyRequest() {
-    const { data } = await this.supabase
-      .from('dining_requests')
-      .select('*')
-      .eq('user_id', this.currentUser.id)
-      .eq('dining_type', 'match')
-      .order('created_at', { ascending: false }) // 排序：最新在最前
-      .limit(1) // 只取一筆
-      .maybeSingle();
-    
-    this.myRequest = data;
-  }
-
-  // =============================
-  // ⭐ 載入配對用戶
-  // =============================
-  async loadUsers() {
-    if (!this.myRequest) return;
-
-    // 5 分鐘內的有效請求
-    const fiveMin = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    if (!this.restaurant?.name) {
+      console.error('restaurant.name 不存在，查不到候選人', this.restaurant);
+      this.candidates = [];
+      this.cdr.detectChanges();
+      return;
+    }
 
     const { data, error } = await this.supabase
       .from('dining_requests')
       .select(`
-        *,
+        user_id,
+        restaurant_id,
         profiles (
           username,
+          mbti,
           avatar_url
         )
       `)
-      .eq('dining_type', 'match')
-      .eq('restaurant_id', this.myRequest.restaurant_id)
-      .gte('created_at', fiveMin)
-      .order('created_at', { ascending: false }); // 對方也要是最新請求
+      .neq('user_id', this.currentUserId)
+      .limit(5);
 
     if (error) {
-      console.error('❌ loadUsers 錯誤:', error.message);
+      console.error('找候選人錯誤', error);
       return;
     }
 
-    // 這裡使用 filter 確保畫面上不會出現同一個人的重複請求 (如果資料庫沒清乾淨)
-    const uniqueUsers: any[] = [];
-    const seenIds = new Set();
-    
-    (data || []).forEach(u => {
-      if (u.user_id !== this.currentUser.id && !seenIds.has(u.user_id)) {
-        uniqueUsers.push(u);
-        seenIds.add(u.user_id);
-      }
-    });
+    console.log('候選人查詢結果:', data);
 
-    this.users = uniqueUsers;
+    if (!data || data.length === 0) {
+      this.candidates = [];
+      this.isWaiting = true;
+      this.isMatched = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.candidates = data.map((user: any) => ({
+      user_id: user.user_id,
+      name: user.profiles?.[0]?.username ?? '未命名使用者',
+      mbti: user.profiles?.[0]?.mbti ?? '未知',
+      avatar: user.profiles?.[0]?.avatar_url ?? 'https://i.pravatar.cc/300?img=32',
+      intro: '一起吃飯吧！'
+    }));
+
     this.cdr.detectChanges();
   }
 
-  async loadLikes() {
-    const { data } = await this.supabase
+  async likeFriend(friend: any) {
+    if (!this.currentUserId) return;
+
+    const { error } = await this.supabase
       .from('likes')
-      .select('*')
-      .eq('user_id', this.currentUser.id);
-    this.likes = data || [];
+      .insert({
+        from_user_id: this.currentUserId,
+        to_user_id: friend.user_id
+      });
+
+    if (error) {
+      console.error('送出 like 失敗', error);
+      return;
+    }
+
+    console.log('👍 已送出一起吃邀請');
+
+    // 先存資料，避免聊天室頁刷新後拿不到
+    localStorage.setItem('chat_target', friend.user_id);
+    localStorage.setItem('friend_current', JSON.stringify(friend));
+    localStorage.setItem(
+      'friend_current_restaurant',
+      JSON.stringify(this.restaurant)
+    );
+
+    // 直接跳聊天室
+    this.router.navigate(['/friend/chat'], {
+      state: {
+        friend: friend,
+        restaurant: this.restaurant,
+        matchId: friend?.match_id ?? null
+      }
+    });
   }
 
-  async loadMatches() {
-    const { data } = await this.supabase
+  async checkMatch() {
+    if (!this.currentUserId) return;
+
+    const { data, error } = await this.supabase
       .from('matches')
       .select('*')
-      .or(`user_a_id.eq.${this.currentUser.id},user_b_id.eq.${this.currentUser.id}`);
-    this.matches = data || [];
-  }
+      .or(`user_a_id.eq.${this.currentUserId},user_b_id.eq.${this.currentUserId}`)
+      .limit(1);
 
-  getAvatar(url: string | null, username: string | null) {
-    if (!url || url === 'default') {
-      return `https://api.dicebear.com/7.x/initials/svg?seed=${username || 'user'}`;
+    if (error) {
+      console.error('檢查配對失敗', error);
+      return;
     }
-    return url;
+
+    if (!data || data.length === 0) {
+      this.isMatched = false;
+      this.isWaiting = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const match = data[0];
+
+    const otherUserId =
+      match.user_a_id === this.currentUserId ? match.user_b_id : match.user_a_id;
+
+    const friend =
+      this.candidates.find(c => c.user_id === otherUserId) ?? {
+        user_id: otherUserId,
+        name: '配對成功的飯友',
+        mbti: '未知',
+        avatar: 'https://i.pravatar.cc/300?img=32',
+        intro: '一起吃飯吧！',
+        match_id: match.id
+      };
+
+    friend.match_id = match.id;
+
+    this.matchedFriend = friend;
+    this.isMatched = true;
+    this.isWaiting = false;
+
+    localStorage.setItem('friend_current', JSON.stringify(friend));
+
+    this.cdr.detectChanges();
   }
 
-  isMatched(user: any): boolean {
-    return this.matches.some(m =>
-      (m.user_a_id === this.currentUser.id && m.user_b_id === user.user_id) ||
-      (m.user_b_id === this.currentUser.id && m.user_a_id === user.user_id)
+  goToChat(friend?: any) {
+    const targetFriend = friend ?? this.matchedFriend;
+
+    if (!targetFriend) return;
+
+    localStorage.setItem('chat_target', targetFriend.user_id);
+    localStorage.setItem('friend_current', JSON.stringify(targetFriend));
+    localStorage.setItem(
+      'friend_current_restaurant',
+      JSON.stringify(this.restaurant)
     );
+
+    this.router.navigate(['/friend/chat'], {
+      state: {
+        friend: targetFriend,
+        restaurant: this.restaurant,
+        matchId: targetFriend?.match_id ?? null
+      }
+    });
   }
 
-  // =============================
-  // ⭐ 核心配對邏輯：雙向最新一筆卡控
-  // =============================
-  async likeUser(user: any) {
-    // 1️⃣ 檢查自己 (再次確保狀態最新)
-    await this.loadMyRequest();
-    if (!this.myRequest) {
-      alert('您的請求已過期，請重新選擇餐廳！');
-      window.location.href = '/auth/preference'; 
-      return;
-    }
-
-    // 2️⃣ 檢查重複 Like
-    const { data: exist } = await this.supabase
-      .from('likes')
-      .select('*')
-      .eq('user_id', this.currentUser.id)
-      .eq('target_user_id', user.user_id)
-      .maybeSingle();
-
-    if (exist) {
-      alert('已經點過喜歡囉！');
-      return;
-    }
-
-    // 3️⃣ 執行 Like
-    await this.supabase.from('likes').insert({
-      user_id: this.currentUser.id,
-      target_user_id: user.user_id
-    });
-
-    // 4️⃣ 檢查對方是否也 Like 我
-    const { data: mutual } = await this.supabase
-      .from('likes')
-      .select('*')
-      .eq('user_id', user.user_id)
-      .eq('target_user_id', this.currentUser.id)
-      .maybeSingle();
-
-    if (!mutual) {
-      alert('👍 已傳達你的喜歡！');
-      return;
-    }
-
-    // 5️⃣ ⭐ 優化 2：取得對方「最新一筆」有效請求
-    const { data: targetRequest } = await this.supabase
-      .from('dining_requests')
-      .select('*')
-      .eq('user_id', user.user_id)
-      .eq('dining_type', 'match')
-      .order('created_at', { ascending: false }) // 最新優先
-      .limit(1)
-      .maybeSingle();
-
-    if (!targetRequest) {
-      alert('對方目前沒有有效的餐廳請求');
-      return;
-    }
-
-    // 6️⃣ 終極餐廳比對
-    if (this.myRequest.restaurant_id !== targetRequest.restaurant_id) {
-      alert('配對失敗：對方的餐廳選擇已變更！');
-      return;
-    }
-
-    // 7️⃣ 建立 Match
-    const { error: matchError } = await this.supabase.from('matches').insert({
-      user_a_id: this.currentUser.id,
-      user_b_id: user.user_id,
-      status: 'matched',
-      created_at: new Date().toISOString()
-    });
-
-    if (!matchError) {
-      alert('🎉 餐廳選擇一致，配對成功！');
-      await this.loadMatches(); 
-    } else {
-      console.error('建立配對失敗', matchError);
-    }
+  retryMatch() {
+    this.findCandidates();
   }
 
-  goChat(user: any) {
-    localStorage.setItem('chat_target', user.user_id);
-    window.location.href = '/friend/chat';
+  ngOnDestroy(): void {
+    if (this.pollingId) {
+      clearInterval(this.pollingId);
+      this.pollingId = null;
+    }
   }
 }

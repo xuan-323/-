@@ -93,14 +93,14 @@ export const routes: Routes = [
   {
     path: 'friend/chat',
     loadComponent: () =>
-      import('./friend-chat').then(m => m.FriendChatComponent),
+      import('./friend-chat/friend-chat').then(m => m.ChatComponent),
   },
 
   // ===== 回饋頁 =====
   {
     path: 'friend/feedback',
     loadComponent: () =>
-      import('./friend-feedback')
+      import('./friend-feedback/friend-feedback')
         .then(m => m.FriendFeedbackComponent),
   },
 
@@ -121,7 +121,16 @@ export const routes: Routes = [
       .then(m => m.SoloFeedbackComponent),
 },
 
+
+{
+  path: 'friend/thanks',
+  loadComponent: () =>
+    import('./friend-thanks/friend-thanks')
+      .then(m => m.FriendThanksComponent),
+},
+
 // ✅ 結束頁
+
 {
   path: 'auth/solo-thanks',
   loadComponent: () =>

@@ -57,3 +57,28 @@
   border: none;
   border-radius: 10px;
 }
+
+.finish-meal-bar {
+  padding: 12px 16px 20px;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+}
+
+.finish-meal-btn {
+  width: 100%;
+  max-width: 420px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: #ff9f43;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(255, 159, 67, 0.25);
+}
+
+.finish-meal-btn:hover {
+  transform: translateY(-1px);
+}
