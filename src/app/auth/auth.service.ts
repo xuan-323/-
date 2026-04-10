@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = 'https://hamijkpsjaxltifhrppw.supabase.co'; 
-const SUPABASE_ANON_KEY = 'sb_publishable_LataTu72rxsmn883jnvjgw_af3rtxRt';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -11,14 +9,8 @@ export class AuthService {
   private supabase: SupabaseClient;
 
   constructor() {
-    this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
   }
-
-  // 1. 核心登入功能
-// src/app/auth/auth.service.ts
-// ...
-
-  // 核心登入功能
   async signIn(email: string, password: string) {
     const { data, error } = await this.supabase.auth.signInWithPassword({
       email,

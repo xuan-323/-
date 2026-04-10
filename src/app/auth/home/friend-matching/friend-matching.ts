@@ -2,10 +2,11 @@ import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { createClient } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 const supabase = createClient(
-  'https://hamijkpsjaxltifhrppw.supabase.co',
-  'sb_publishable_LataTu72rxsmn883jnvjgw_af3rtxRt'
+  environment.supabaseUrl,
+  environment.supabaseAnonKey
 );
 
 @Component({
