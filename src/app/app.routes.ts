@@ -63,7 +63,18 @@ export const routes: Routes = [
         .then(m => m.SoloFinishComponent),
     canMatch: [authGuard],
   },
-
+  {
+  path: 'auth/solo-feedback',
+  loadComponent: () =>
+    import('./solo-feedback/solo-feedback')
+      .then(m => m.SoloFeedbackComponent),
+},
+{
+  path: 'auth/solo-thanks',
+  loadComponent: () =>
+    import('./solo-thanks/solo-thanks')
+      .then(m => m.SoloThanksComponent),
+},
   // ===== 找飯友 =====
   {
     path: 'friend/result',
@@ -83,14 +94,14 @@ export const routes: Routes = [
   {
     path: 'friend/chat/:id', 
     loadComponent: () =>
-      import('./friend-chat').then(m => m.FriendChatComponent),
+      import('./friend-chat/friend-chat').then(m => m.ChatComponent),
   },
 
   // ===== 回饋頁 =====
   {
     path: 'friend/feedback',
     loadComponent: () =>
-      import('./friend-feedback')
+      import('./friend-feedback/friend-feedback')
         .then(m => m.FriendFeedbackComponent),
   },
 
@@ -103,6 +114,30 @@ export const routes: Routes = [
     canMatch: [authGuard],
   },
 
+// ✅ 自己吃回饋
+{
+  path: 'auth/solo-feedback',
+  loadComponent: () =>
+    import('./solo-feedback/solo-feedback')
+      .then(m => m.SoloFeedbackComponent),
+},
+
+
+{
+  path: 'friend/thanks',
+  loadComponent: () =>
+    import('./friend-thanks/friend-thanks')
+      .then(m => m.FriendThanksComponent),
+},
+
+// ✅ 結束頁
+
+{
+  path: 'auth/solo-thanks',
+  loadComponent: () =>
+    import('./solo-thanks/solo-thanks')
+      .then(m => m.SoloThanksComponent),
+},
   // ===== Home =====
   {
     path: 'home',
@@ -121,5 +156,6 @@ export const routes: Routes = [
     canMatch: [authGuard],
   },
 
+  // ⚠️ 一定要最後
   { path: '**', redirectTo: 'auth/login' },
 ];

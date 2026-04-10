@@ -1,0 +1,36 @@
+<div class="feedback-page">
+  <div class="feedback-card">
+    <h1 class="title">用餐回饋</h1>
+
+    <p class="subtitle" *ngIf="friend && restaurant">
+      你和 <strong>{{ friend.name || '飯友' }}</strong>
+      在 <strong>{{ restaurant.name || '這家餐廳' }}</strong> 用餐感覺如何？
+    </p>
+
+    <div class="stars">
+      <button
+        type="button"
+        class="star-btn"
+        *ngFor="let s of [1,2,3,4,5]"
+        (click)="setRating(s)"
+        [class.active]="s <= rating"
+      >
+        ★
+      </button>
+    </div>
+
+    <textarea
+      [(ngModel)]="comment"
+      rows="4"
+      placeholder="想說的話（可不填）"
+    ></textarea>
+
+    <button
+      class="submit-btn"
+      (click)="submit()"
+      [disabled]="rating === 0"
+    >
+      送出評分
+    </button>
+  </div>
+</div>
