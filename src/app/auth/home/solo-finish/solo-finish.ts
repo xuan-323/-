@@ -1,84 +1,84 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-
-type HistoryItem = {
-  type: 'solo';
-  restaurant: any;
-  rating: number;
-  comment: string;
-  time: string;
-};
 
 @Component({
   standalone: true,
   selector: 'app-solo-finish',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './solo-finish.html',
-  styleUrls: ['./solo-finish.css'],
+  styleUrls: ['./solo-finish.css']
 })
-export class SoloFinishComponent {
+export class SoloFinishComponent implements OnInit, OnDestroy {
 
-  restaurant: any = null;
+  restaurant: any = history.state?.restaurant ?? null;
 
-  // ⭐ 回饋狀態
-  showFeedback = false;
-  rating = 0;
-  comment = '';
+  private hasNavigatedToFeedback = false;
+  private handleWindowFocusBound = this.handleWindowFocus.bind(this);
+  private handleVisibilityChangeBound = this.handleVisibilityChange.bind(this);
 
-  constructor(private router: Router) {
-    this.restaurant = history.state?.restaurant ?? null;
+  constructor(private router: Router) {}
+
+  ngOnInit(): void {
+    if (!this.restaurant) {
+      const raw = localStorage.getItem('solo_current_restaurant');
+      this.restaurant = raw ? JSON.parse(raw) : null;
+    }
+
+    // 回到原本分頁時觸發
+    window.addEventListener('focus', this.handleWindowFocusBound);
+    document.addEventListener('visibilitychange', this.handleVisibilityChangeBound);
   }
 
-  goBack() {
-    this.router.navigate(['/auth/preference']);
+  ngOnDestroy(): void {
+    window.removeEventListener('focus', this.handleWindowFocusBound);
+    document.removeEventListener('visibilitychange', this.handleVisibilityChangeBound);
   }
 
-  openMap() {
-    if (!this.restaurant?.name) return;
+  openMap(): void {
+    if (!this.restaurant) return;
+
+    // 記錄：等等回來要跳回饋
+    localStorage.setItem('solo_need_feedback', 'true');
+
+    // 記住目前餐廳
+    localStorage.setItem('solo_current_restaurant', JSON.stringify(this.restaurant));
 
     const query = encodeURIComponent(this.restaurant.name);
-    const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
-    window.open(url, '_blank');
+
+    // ✅ 用新分頁開，不要離開原本 Angular 頁面
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${query}`,
+      '_blank'
+    );
   }
 
-  // ========================
-  // ⭐ 回饋功能
-  // ========================
-
-  openFeedback() {
-    this.showFeedback = true;
-    this.rating = 0;
-    this.comment = '';
+  private handleWindowFocus(): void {
+    this.checkNeedFeedback();
   }
 
-  closeFeedback() {
-    this.showFeedback = false;
+  private handleVisibilityChange(): void {
+    if (document.visibilityState === 'visible') {
+      this.checkNeedFeedback();
+    }
   }
 
-  setRating(n: number) {
-    this.rating = n;
+  private checkNeedFeedback(): void {
+    const needFeedback = localStorage.getItem('solo_need_feedback');
+
+    if (needFeedback === 'true' && !this.hasNavigatedToFeedback) {
+      this.hasNavigatedToFeedback = true;
+      localStorage.removeItem('solo_need_feedback');
+
+      this.router.navigate(['/auth/solo-feedback'], {
+        state: {
+          restaurant: this.restaurant
+        }
+      });
+    }
   }
 
-  submitFeedback() {
-    if (this.rating <= 0) return;
-
-    const payload: HistoryItem = {
-      type: 'solo',
-      restaurant: this.restaurant,
-      rating: this.rating,
-      comment: this.comment.trim(),
-      time: new Date().toISOString(),
-    };
-
-    const raw = localStorage.getItem('history');
-    const list: HistoryItem[] = raw ? JSON.parse(raw) : [];
-    list.unshift(payload);
-
-    localStorage.setItem('history', JSON.stringify(list));
-
-    this.showFeedback = false;
-    this.router.navigate(['/home']);
+  shuffle(): void {
+    this.router.navigate(['/solo/result']);
   }
 }

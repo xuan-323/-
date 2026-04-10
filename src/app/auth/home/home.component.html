@@ -86,5 +86,35 @@
       </div>
 
     </main>
+
+    <!-- ⭐ 右下浮動按鈕區（你圈的地方） -->
+    <div class="absolute right-4 bottom-6 flex flex-col gap-3">
+
+      <!-- 個人資料 -->
+      <button
+        class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-xl"
+        (click)="goProfile()"
+      >
+        👤
+      </button>
+
+      <!-- 歷史紀錄（可留） -->
+      <button
+        class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-xl"
+        (click)="goHistory()"
+      >
+        📜
+      </button>
+
+      <!-- 聊天（可留） -->
+      <button
+        class="w-12 h-12 rounded-full bg-black text-white shadow-lg flex items-center justify-center text-xl"
+        (click)="goChat()"
+      >
+        💬
+      </button>
+
+    </div>
+
   </div>
 </div>
