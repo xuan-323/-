@@ -21,7 +21,8 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   users: any[] = [];
   matches: any[] = [];
   myRequest: any = null;
-  private channel: any;
+  private matchesChannel: any;
+  private usersChannel: any;
   private intervalId: any;
 
   constructor(private cdr: ChangeDetectorRef, private router: Router) {}
@@ -41,7 +42,8 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.channel) supabase.removeChannel(this.channel);
+    if (this.matchesChannel) supabase.removeChannel(this.matchesChannel);
+    if (this.usersChannel) supabase.removeChannel(this.usersChannel);
     if (this.intervalId) clearInterval(this.intervalId);
   }
 
@@ -69,13 +71,33 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   }
 
   setupRealtime() {
-    if (this.channel) supabase.removeChannel(this.channel);
-    this.channel = supabase
+    // 清除舊的頻道
+    if (this.matchesChannel) supabase.removeChannel(this.matchesChannel);
+    if (this.usersChannel) supabase.removeChannel(this.usersChannel);
+
+    // 監聽 matches 表（配對更新）
+    this.matchesChannel = supabase
       .channel('sync-matches')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches' },
-        () => this.loadMatches()
+        (payload) => {
+          console.log('✅ 配對表更新:', payload);
+          this.loadMatches();
+        }
+      )
+      .subscribe();
+
+    // 🔥 關鍵修正：監聽 dining_requests（用戶上線/下線）
+    this.usersChannel = supabase
+      .channel('sync-users-' + this.myRequest.restaurant_id)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'dining_requests' },
+        (payload) => {
+          console.log('🔄 用戶列表更新:', payload);
+          this.loadUsers();
+        }
       )
       .subscribe();
   }
@@ -96,14 +118,20 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     // 關鍵：只抓取「1分鐘內」有活動的用戶，過濾離線用戶
     const onlineThreshold = new Date(Date.now() - 60 * 1000).toISOString();
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('dining_requests')
       .select('*, profiles(username, avatar_url)')
       .eq('dining_type', 'match')
       .eq('restaurant_id', this.myRequest.restaurant_id)
       .gte('last_active', onlineThreshold);
 
+    if (error) {
+      console.error('❌ 加載用戶出錯:', error);
+      return;
+    }
+
     this.users = (data || []).filter(u => u.user_id !== this.currentUser.id);
+    console.log('👥 當前在線用戶:', this.users.length);
     this.cdr.detectChanges();
   }
 
