@@ -53,10 +53,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     // 2. 獲取當前使用者
     const { data } = await this.supabase.auth.getUser();
     if (!data.user) {
+      console.error('❌ 未登入');
       this.router.navigate(['/login']);
       return;
     }
     this.currentUser = data.user;
+    console.log('✅ 當前使用者:', this.currentUser.id);
 
     // 3. 從路由參數獲取 targetUserId（新增支持 URL 參數）
     this.route.params.subscribe(async (params) => {
@@ -76,10 +78,12 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     // 如果沒有 URL 參數，使用 friend.user_id 或 localStorage
     if (!this.targetUserId) {
       this.targetUserId = this.friend?.user_id || localStorage.getItem('chat_target') || null;
+      console.log('🎯 目標用戶:', this.targetUserId);
     }
 
     if (!this.targetUserId) {
-      alert('沒有聊天對象');
+      console.error('❌ 沒有聊天對象，導航回前頁面');
+      this.router.navigate(['/friend/matching']);
       return;
     }
 

@@ -133,6 +133,8 @@ export class FriendResultComponent implements OnInit {
         .select()
         .single();
 
+      console.log('✅ 餐廳資訊:', restaurantData);
+
       // ⭐ 寫入配對池
       await this.supabase
         .from('dining_requests')
@@ -146,7 +148,20 @@ export class FriendResultComponent implements OnInit {
           { onConflict: 'user_id' }
         );
 
-      this.router.navigate(['/friend/matching']);
+      // 📌 傳遞完整的餐廳和 ID 信息到配對頁面
+      this.router.navigate(['/friend/matching'], {
+        state: {
+          restaurant: {
+            id: restaurantData.id,
+            name: this.restaurant.name,
+            image: this.restaurant.image,
+            tags: this.restaurant.tags,
+            distance: this.restaurant.distance,
+            lat: this.restaurant.lat,
+            lng: this.restaurant.lng
+          }
+        }
+      });
 
     } catch (err) {
       console.error('系統錯誤:', err);

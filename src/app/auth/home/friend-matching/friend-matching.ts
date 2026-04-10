@@ -90,22 +90,25 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   async findCandidates() {
     if (!this.currentUserId) return;
 
-    console.log('🔍 查詢候選人:', { restaurant: this.restaurant?.name, currentUserId: this.currentUserId });
+    console.log('🔍 查詢候選人:', { 
+      restaurant: this.restaurant?.name, 
+      restaurantId: this.restaurant?.id,
+      currentUserId: this.currentUserId 
+    });
 
-    if (!this.restaurant?.name) {
-      console.error('❌ 餐廳名稱不存在，查不到候選人', this.restaurant);
+    if (!this.restaurant?.id || !this.restaurant?.name) {
+      console.error('❌ 餐廳 ID 或名稱不存在，查不到候選人', this.restaurant);
       this.candidates = [];
       this.cdr.detectChanges();
       return;
     }
 
-    // 查詢同一餐廳的其他用戶
+    // 查詢同一餐廳（按 restaurant_id）的其他用戶
     const { data, error } = await this.supabase
       .from('dining_requests')
       .select(`
         user_id,
         restaurant_id,
-        restaurant_name,
         profiles (
           id,
           username,
@@ -113,7 +116,8 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
           avatar_url
         )
       `)
-      .eq('restaurant_name', this.restaurant.name)  // 同一餐廳
+      .eq('restaurant_id', this.restaurant.id)  // 同一餐廳（按 ID）
+      .eq('dining_type', 'match')  // 只查配對類型
       .neq('user_id', this.currentUserId)  // 排除自己
       .limit(5);
 
@@ -128,6 +132,7 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       this.candidates = [];
       this.isWaiting = true;
       this.isMatched = false;
+      console.log('⏳ 暫無同餐廳的候選人');
       this.cdr.detectChanges();
       return;
     }
@@ -139,10 +144,10 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       mbti: dining.profiles?.[0]?.mbti ?? '未知',
       avatar: dining.profiles?.[0]?.avatar_url ?? `https://i.pravatar.cc/300?img=32&seed=${dining.user_id}`,
       intro: '一起吃飯吧！',
-      restaurant_name: dining.restaurant_name
+      restaurant_id: dining.restaurant_id
     }));
 
-    console.log('✅ 已加載 ' + this.candidates.length + ' 位候選人');
+    console.log('✅ 已加載 ' + this.candidates.length + ' 位候選人，同在「' + this.restaurant.name + '」');
     this.cdr.detectChanges();
   }
 
