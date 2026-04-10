@@ -1,11 +1,28 @@
 -- 📊 Supabase 数据库初始化脚本
 -- 运行这些 SQL 命令在你的 Supabase 数据库中
 
+-- ===== 0️⃣ Restaurants 表 =====
+CREATE TABLE restaurants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  image TEXT,
+  tags TEXT,
+  distance TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+ALTER TABLE restaurants ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view restaurants" ON restaurants FOR SELECT USING (true);
+
 -- ===== 1️⃣ Profiles 表 =====
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT NOT NULL UNIQUE,
   avatar_url TEXT,
+  mbti TEXT,
+  gender TEXT,
+  zodiac TEXT,
+  intro TEXT,
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -17,8 +34,9 @@ CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.
 CREATE TABLE dining_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  restaurant_id TEXT NOT NULL,
+  restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
   dining_type TEXT CHECK (dining_type IN ('solo', 'match')) NOT NULL,
+  status TEXT DEFAULT 'active',
   last_active TIMESTAMP DEFAULT NOW(),
   created_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(user_id, restaurant_id, dining_type)
