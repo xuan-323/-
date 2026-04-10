@@ -45,15 +45,44 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   constructor(private route: ActivatedRoute, private router: Router) {}
 
   async ngOnInit() {
+    console.log('🔍 聊天頁面初始化...');
+
     // 1. 從 history state 或 localStorage 獲取朋友和餐廳信息
-    this.friend = history.state?.friend || JSON.parse(localStorage.getItem('friend_current') || 'null');
-    this.restaurant = history.state?.restaurant || JSON.parse(localStorage.getItem('friend_current_restaurant') || 'null');
+    this.friend = history.state?.friend || null;
+    this.restaurant = history.state?.restaurant || null;
     this.matchId = history.state?.matchId || null;
+
+    // 如果 history state 沒有，嘗試從 localStorage 補救
+    if (!this.friend) {
+      const rawFriend = localStorage.getItem('friend_current');
+      if (rawFriend) {
+        try {
+          this.friend = JSON.parse(rawFriend);
+          console.log('✅ 從 localStorage 恢復 friend:', this.friend);
+        } catch (e) {
+          console.error('❌ 解析 friend_current 失敗:', e);
+          this.friend = null;
+        }
+      }
+    }
+
+    if (!this.restaurant) {
+      const rawRestaurant = localStorage.getItem('friend_current_restaurant');
+      if (rawRestaurant) {
+        try {
+          this.restaurant = JSON.parse(rawRestaurant);
+          console.log('✅ 從 localStorage 恢復 restaurant:', this.restaurant);
+        } catch (e) {
+          console.error('❌ 解析 restaurant 失敗:', e);
+          this.restaurant = null;
+        }
+      }
+    }
 
     // 2. 獲取當前使用者
     const { data } = await this.supabase.auth.getUser();
     if (!data.user) {
-      console.error('❌ 未登入');
+      console.error('❌ 未登入，導航回登入頁');
       this.router.navigate(['/login']);
       return;
     }
@@ -65,6 +94,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       const newTargetId = params['id'];
       if (newTargetId && newTargetId !== this.targetUserId) {
         this.targetUserId = newTargetId;
+        console.log('🔄 從 URL 參數更新 targetUserId:', this.targetUserId);
         // 清除舊訂閱，重新加載新聊天
         if (this.subscription) {
           this.supabase.removeChannel(this.subscription);
@@ -75,18 +105,25 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       }
     });
 
-    // 如果沒有 URL 參數，使用 friend.user_id 或 localStorage
+    // 4. 如果沒有 URL 參數，使用 friend.user_id 或 localStorage
     if (!this.targetUserId) {
       this.targetUserId = this.friend?.user_id || localStorage.getItem('chat_target') || null;
-      console.log('🎯 目標用戶:', this.targetUserId);
+      console.log('🎯 目標用戶 ID:', this.targetUserId);
     }
 
+    // 5. 驗證必要的數據
     if (!this.targetUserId) {
-      console.error('❌ 沒有聊天對象，導航回前頁面');
+      console.error('❌ 沒有聊天對象，無法進行聊天。数据:', {
+        friendId: this.friend?.user_id,
+        storedChatTarget: localStorage.getItem('chat_target'),
+        storedFriend: localStorage.getItem('friend_current')
+      });
+      alert('❌ 無法建立聊天連接，請重新選擇飯友');
       this.router.navigate(['/friend/matching']);
       return;
     }
 
+    console.log('✅ 所有必要數據已就緒，準備加載消息');
     this.requestNotificationPermission();
     await this.loadMessages();
     this.listenMessages();

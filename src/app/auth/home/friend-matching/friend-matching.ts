@@ -152,7 +152,10 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   }
 
   async likeFriend(friend: any) {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId || !friend?.user_id) {
+      console.error('❌ 缺少必要信息', { currentUserId: this.currentUserId, friend });
+      return;
+    }
 
     const { error } = await this.supabase
       .from('likes')
@@ -162,15 +165,27 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       });
 
     if (error) {
-      console.error('送出 like 失敗', error);
+      console.error('❌ 送出 like 失敗', error);
       return;
     }
 
-    console.log('👍 已送出一起吃邀請');
+    console.log('👍 已送出一起吃邀請:', { from: this.currentUserId, to: friend.user_id });
+
+    // 📌 確保完整的 friend 對象包含所有必要欄位
+    const friendData = {
+      user_id: friend.user_id,
+      name: friend.name,
+      mbti: friend.mbti,
+      avatar: friend.avatar,
+      intro: friend.intro,
+      restaurant_id: friend.restaurant_id
+    };
+
+    console.log('💾 保存到 localStorage:', friendData);
 
     // 先存資料，避免聊天室頁刷新後拿不到
     localStorage.setItem('chat_target', friend.user_id);
-    localStorage.setItem('friend_current', JSON.stringify(friend));
+    localStorage.setItem('friend_current', JSON.stringify(friendData));
     localStorage.setItem(
       'friend_current_restaurant',
       JSON.stringify(this.restaurant)
@@ -179,7 +194,7 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     // 直接跳聊天室
     this.router.navigate(['/friend/chat'], {
       state: {
-        friend: friend,
+        friend: friendData,
         restaurant: this.restaurant,
         matchId: friend?.match_id ?? null
       }

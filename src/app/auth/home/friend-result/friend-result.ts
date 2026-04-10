@@ -135,18 +135,34 @@ export class FriendResultComponent implements OnInit {
 
       console.log('✅ 餐廳資訊:', restaurantData);
 
-      // ⭐ 寫入配對池
+      // 🔑 關鍵：先清除該用戶之前的所有配對請求
       await this.supabase
         .from('dining_requests')
-        .upsert(
-          {
-            user_id: user.id,
-            restaurant_id: restaurantData.id,
-            dining_type: 'match',
-            status: 'active'
-          },
-          { onConflict: 'user_id' }
-        );
+        .delete()
+        .eq('user_id', user.id)
+        .eq('dining_type', 'match');
+
+      console.log('🧹 已清除之前的配對請求');
+
+      // ⭐ 寫入新的配對池（確保唯一記錄）
+      const { data: insertData, error: insertError } = await this.supabase
+        .from('dining_requests')
+        .insert({
+          user_id: user.id,
+          restaurant_id: restaurantData.id,
+          dining_type: 'match',
+          status: 'active',
+          last_active: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('❌ 寫入配對池失敗:', insertError);
+        return;
+      }
+
+      console.log('✅ 已加入配對池:', insertData);
 
       // 📌 傳遞完整的餐廳和 ID 信息到配對頁面
       this.router.navigate(['/friend/matching'], {
