@@ -3,7 +3,7 @@ import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+import { environment } from '../environments/environment';
 
 interface Message {
   id: string | number;

@@ -154,6 +154,7 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       (m.user_a_id === this.currentUser.id && m.user_b_id === user.user_id) ||
       (m.user_b_id === this.currentUser.id && m.user_a_id === user.user_id)
     );
+  }
 
   async likeUser(user: any) {
     // 1. 送出喜歡
@@ -198,12 +199,5 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     return (!url || url === 'default')
       ? `https://api.dicebear.com/7.x/initials/svg?seed=${username || 'user'}`
       : url;
-  }
-
-  ngOnDestroy(): void {
-    if (this.pollingId) {
-      clearInterval(this.pollingId);
-      this.pollingId = null;
-    }
   }
 }
