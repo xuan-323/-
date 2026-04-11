@@ -22,14 +22,8 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   candidates: any[] = [];
   currentUserId: string | null = null;
 
-  isWaiting = true;
-  isMatched = false;
-  matchedFriend: any = null;
-
   private pollingId: any = null;
   private hasNavigated = false;
-
-  enterTime: string = '';
 
   constructor(
     private router: Router,
@@ -50,19 +44,17 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
 
     this.currentUserId = user.id;
 
-    // 🔥 關鍵：記錄進入時間
-    this.enterTime = new Date().toISOString();
-
     await this.findCandidates();
 
-    // ❗ 這裡不要一開始就強制跳
+    // ⭐ 輪詢（讓另一方自動跳）
     this.pollingId = setInterval(async () => {
       await this.checkMatch();
-    }, 2000);
+      await this.findCandidates();
+    }, 1000);
   }
 
   async findCandidates() {
-    if (!this.currentUserId || !this.restaurant?.id) return;
+    if (!this.currentUserId || !this.restaurant?.name) return;
 
     const { data } = await this.supabase
       .from('dining_requests')
@@ -70,19 +62,18 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
         user_id,
         profiles (
           username,
-          mbti,
           avatar_url
         )
       `)
-      .eq('restaurant_id', this.restaurant.id)
+      .eq('restaurant_name', this.restaurant.name)
       .eq('status', 'active')
+      .eq('dining_type', 'match')
       .neq('user_id', this.currentUserId);
 
     this.candidates =
       data?.map((item: any) => ({
         user_id: item.user_id,
         name: item.profiles?.[0]?.username ?? '使用者',
-        mbti: item.profiles?.[0]?.mbti ?? '',
         avatar:
           item.profiles?.[0]?.avatar_url ??
           `https://i.pravatar.cc/150?u=${item.user_id}`,
@@ -91,10 +82,14 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  // ❤️ 按 like（核心）
   async likeFriend(friend: any) {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId || !friend?.user_id) return;
 
-    // ✅ 存 like
+    // ⭐ 防止重複跳
+    this.hasNavigated = false;
+
+    // 1️⃣ 我 like 對方
     await this.supabase.from('likes').upsert(
       {
         user_id: this.currentUserId,
@@ -103,78 +98,23 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       { onConflict: 'user_id,target_user_id' }
     );
 
-   const { data: reverseLikes } = await this.supabase
-  .from('likes')
-  .select('user_id')
-  .eq('user_id', friend.user_id)
-  .eq('target_user_id', this.currentUserId);
+    console.log('👍 我按 like');
 
-if (!reverseLikes || reverseLikes.length === 0) {
-  alert('已送出喜歡，等待對方中 ❤️');
-  return;
-}
+    // 2️⃣ 檢查對方有沒有 like 我
+    const { data: reverse } = await this.supabase
+      .from('likes')
+      .select('*')
+      .eq('user_id', friend.user_id)
+      .eq('target_user_id', this.currentUserId)
+      .maybeSingle();
 
-  async likeFriend(friend: any) {
-  if (!this.currentUserId) return;
+    // ❌ 沒互 like
+    if (!reverse) {
+      alert('已送出喜歡 ❤️');
+      return;
+    }
 
-  // ✅ 先存自己的 like
-  await this.supabase.from('likes').upsert(
-  {
-    user_id: this.currentUserId,
-    target_user_id: friend.user_id,
-    created_at: new Date().toISOString(), // 🔥 加在這
-  },
-  { onConflict: 'user_id,target_user_id' }
-);
-
-  // ✅ 檢查對方是否也 like 你（關鍵）
-  const { data: reverseLikes } = await this.supabase
-  .from('likes')
-  .select('user_id, created_at')
-  .eq('user_id', friend.user_id)
-  .eq('target_user_id', this.currentUserId)
-  .gte('created_at', this.enterTime); // 🔥 關鍵！
-  // ❗ 沒互相 like → 不跳
-  if (!reverseLikes || reverseLikes.length === 0) {
-    alert('已送出喜歡，等待對方中 ❤️');
-    return;
-  }
-
-  // ✅ 有互相 like → 建立 / 取得 match
-  const { data: existing } = await this.supabase
-    .from('matches')
-    .select('*')
-    .or(
-      `and(user_a_id.eq.${this.currentUserId},user_b_id.eq.${friend.user_id}),and(user_a_id.eq.${friend.user_id},user_b_id.eq.${this.currentUserId})`
-    )
-    .maybeSingle();
-
-  let matchId;
-
-  if (existing) {
-    matchId = existing.id;
-  } else {
-    const { data: newMatch } = await this.supabase
-      .from('matches')
-      .insert({
-        user_a_id: this.currentUserId,
-        user_b_id: friend.user_id,
-        status: 'matched',
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    matchId = newMatch.id;
-  }
-
-
-
-  // ✅ 只有雙方 like 才會走到這裡
-  this.navigateToChat(friend, matchId);
-}
-
-    // 🔥 檢查是否已存在 match（避免重複）
+    // 3️⃣ 檢查是否已有 match（🔥重點）
     const { data: existing } = await this.supabase
       .from('matches')
       .select('*')
@@ -188,32 +128,42 @@ if (!reverseLikes || reverseLikes.length === 0) {
     if (existing) {
       matchId = existing.id;
     } else {
-      const { data: newMatch } = await this.supabase
+      const { data: newMatch, error } = await this.supabase
         .from('matches')
         .insert({
           user_a_id: this.currentUserId,
           user_b_id: friend.user_id,
-          status: 'matched',
+          status: 'accepted',
           created_at: new Date().toISOString(),
         })
         .select()
         .single();
 
+      if (error) {
+        console.error('❌ 建立 match 失敗:', error);
+        return;
+      }
+
       matchId = newMatch.id;
     }
 
+    console.log('🔥 MATCH 成功');
+
+    // 4️⃣ 跳聊天室
     this.navigateToChat(friend, matchId);
   }
 
+  // 🔥 讓另一方自動跳
   async checkMatch() {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId || this.hasNavigated) return;
 
     const { data } = await this.supabase
       .from('matches')
       .select('*')
-      .or(`user_a_id.eq.${this.currentUserId},user_b_id.eq.${this.currentUserId}`)
-      .eq('status', 'matched')
-      .gte('created_at', this.enterTime) // 🔥 只抓新 match
+      .or(
+        `user_a_id.eq.${this.currentUserId},user_b_id.eq.${this.currentUserId}`
+      )
+      .eq('status', 'accepted')
       .order('created_at', { ascending: false })
       .limit(1);
 
@@ -221,17 +171,33 @@ if (!reverseLikes || reverseLikes.length === 0) {
 
     const match = data[0];
 
-    const otherUserId =
+    const targetId =
       match.user_a_id === this.currentUserId
         ? match.user_b_id
         : match.user_a_id;
 
-    this.navigateToChat({ user_id: otherUserId }, match.id);
+    const friend =
+      this.candidates.find(c => c.user_id === targetId) ?? {
+        user_id: targetId,
+        name: '使用者',
+        avatar: `https://i.pravatar.cc/150?u=${targetId}`,
+      };
+
+    this.navigateToChat(friend, match.id);
   }
 
   private navigateToChat(friend: any, matchId: any) {
     if (this.hasNavigated) return;
     this.hasNavigated = true;
+
+    console.log('🚀 跳聊天室成功');
+
+    localStorage.setItem('chat_target', friend.user_id);
+    localStorage.setItem('friend_current', JSON.stringify(friend));
+    localStorage.setItem(
+      'friend_current_restaurant',
+      JSON.stringify(this.restaurant)
+    );
 
     this.router.navigate(['/friend/chat', friend.user_id], {
       state: {
@@ -240,6 +206,11 @@ if (!reverseLikes || reverseLikes.length === 0) {
         restaurant: this.restaurant,
       },
     });
+  }
+
+  async retryMatch() {
+    await this.findCandidates();
+    await this.checkMatch();
   }
 
   ngOnDestroy() {

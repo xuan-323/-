@@ -27,5 +27,6 @@
     "*.scss": "postcss"
   },
   "less.lint.unknownAtRules": "ignore",
-  "scss.lint.unknownAtRules": "ignore"
+  "scss.lint.unknownAtRules": "ignore",
+  "commentTranslate.hover.enabled": true
 }

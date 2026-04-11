@@ -34,7 +34,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   targetUserId: string | null = null;
   messages: Message[] = [];
   newMessage: string = '';
-  
+
   friend: any = null;
   restaurant: any = null;
   matchId: any = null;
