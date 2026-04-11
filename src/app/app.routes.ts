@@ -92,7 +92,7 @@ export const routes: Routes = [
   // ===== 聊天頁（關鍵修正點🔥）=====
   // 加入 :id 參數，確保聊天對象不會錯亂
   {
-    path: 'friend/chat/:id', 
+    path: 'friend/chat/:id',
     loadComponent: () =>
       import('./friend-chat/friend-chat').then(m => m.ChatComponent),
   },

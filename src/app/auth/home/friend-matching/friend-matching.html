@@ -1,48 +1,32 @@
 <div class="matching-page">
-
   <h1 class="title">🍽️ 食伴配對</h1>
+
   <p class="subtitle" *ngIf="restaurant">
     正在為你尋找一起去「{{ restaurant.name }}」的飯友
   </p>
 
-  <!-- 等待中 -->
-  <div *ngIf="isWaiting && !isMatched" class="waiting-box">
+  <div class="waiting-box">
     <div class="loader"></div>
     <p class="waiting-text">等待中，正在尋找和你選同家餐廳的人...</p>
 
     <div class="waiting-actions">
-      <button class="secondary-btn" (click)="retryMatch()">重新整理</button>
+      <button class="secondary-btn" (click)="findCandidates()">重新整理</button>
     </div>
 
-    <!-- 候選人列表 -->
-    <div class="candidate-list" *ngIf="candidates.length > 0">
+    <div class="candidate-list" *ngIf="candidates.length > 0; else emptyState">
       <div class="candidate-card" *ngFor="let friend of candidates">
         <img [src]="friend.avatar" class="avatar" />
         <h3>{{ friend.name }}</h3>
         <p class="mbti">{{ friend.mbti }}</p>
-        <p class="intro">{{ friend.intro }}</p>
 
         <button class="primary-btn" (click)="likeFriend(friend)">
           一起吃 🍜
         </button>
       </div>
     </div>
+
+    <ng-template #emptyState>
+      <p class="waiting-text">稍等~</p>
+    </ng-template>
   </div>
-
-  <!-- 已配對成功 -->
-  <div *ngIf="isMatched && matchedFriend" class="matched-box">
-    <div class="matched-card">
-      <img [src]="matchedFriend.avatar" class="avatar large" />
-      <h2>{{ matchedFriend.name }}</h2>
-      <p class="mbti">{{ matchedFriend.mbti }}</p>
-      <p class="intro">{{ matchedFriend.intro }}</p>
-
-      <div class="matched-actions">
-        <button class="chat-btn" (click)="goToChat(matchedFriend)">
-          開始聊天 💬
-        </button>
-      </div>
-    </div>
-  </div>
-
 </div>

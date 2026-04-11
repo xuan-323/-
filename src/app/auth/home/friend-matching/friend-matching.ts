@@ -12,26 +12,24 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./friend-matching.css'],
 })
 export class FriendMatchingComponent implements OnInit, OnDestroy {
-
   private supabase = createClient(
     environment.supabaseUrl,
     environment.supabaseAnonKey
   );
 
-  tag = history.state?.tag ?? null;
   restaurant = history.state?.restaurant ?? null;
 
   candidates: any[] = [];
   currentUserId: string | null = null;
 
-  // 前端流程狀態
   isWaiting = true;
   isMatched = false;
   matchedFriend: any = null;
 
-  // 輪詢和 Realtime 用
   private pollingId: any = null;
-  private matchesChannel: any = null;
+  private hasNavigated = false;
+
+  enterTime: string = '';
 
   constructor(
     private router: Router,
@@ -39,259 +37,212 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   ) {}
 
   async ngOnInit() {
-    // 如果重整頁面，嘗試從 localStorage 補餐廳
     if (!this.restaurant) {
       const raw = localStorage.getItem('friend_current_restaurant');
       this.restaurant = raw ? JSON.parse(raw) : null;
     }
 
-    const { data: { user } } = await this.supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await this.supabase.auth.getUser();
 
-    if (!user) {
-      console.error('抓不到登入使用者');
-      return;
-    }
+    if (!user) return;
 
     this.currentUserId = user.id;
 
-    // 先載入候選人
+    // 🔥 關鍵：記錄進入時間
+    this.enterTime = new Date().toISOString();
+
     await this.findCandidates();
 
-    // 先檢查一次是否已有 match
-    await this.checkMatch();
-
-    // 每 3 秒檢查一次配對狀態
+    // ❗ 這裡不要一開始就強制跳
     this.pollingId = setInterval(async () => {
       await this.checkMatch();
-    }, 3000);
-
-    // 監聽 matches 表變化
-    this.setupRealtime();
-  }
-
-  setupRealtime() {
-    if (this.matchesChannel) {
-      this.supabase.removeChannel(this.matchesChannel);
-    }
-
-    this.matchesChannel = this.supabase
-      .channel('sync-matches-' + this.currentUserId)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'matches' },
-        (payload) => {
-          console.log('✅ 配對表更新:', payload);
-          this.checkMatch();
-        }
-      )
-      .subscribe();
+    }, 2000);
   }
 
   async findCandidates() {
-    if (!this.currentUserId) return;
+    if (!this.currentUserId || !this.restaurant?.id) return;
 
-    console.log('🔍 查詢候選人:', { 
-      restaurant: this.restaurant?.name, 
-      restaurantId: this.restaurant?.id,
-      currentUserId: this.currentUserId 
-    });
-
-    if (!this.restaurant?.id || !this.restaurant?.name) {
-      console.error('❌ 餐廳 ID 或名稱不存在，查不到候選人', this.restaurant);
-      this.candidates = [];
-      this.cdr.detectChanges();
-      return;
-    }
-
-    // 查詢同一餐廳（按 restaurant_id）的其他用戶
-    const { data, error } = await this.supabase
+    const { data } = await this.supabase
       .from('dining_requests')
       .select(`
         user_id,
-        restaurant_id,
         profiles (
-          id,
           username,
           mbti,
           avatar_url
         )
       `)
-      .eq('restaurant_id', this.restaurant.id)  // 同一餐廳（按 ID）
-      .eq('dining_type', 'match')  // 只查配對類型
-      .neq('user_id', this.currentUserId)  // 排除自己
-      .limit(5);
+      .eq('restaurant_id', this.restaurant.id)
+      .eq('status', 'active')
+      .neq('user_id', this.currentUserId);
 
-    if (error) {
-      console.error('❌ 找候選人錯誤:', error);
-      return;
-    }
+    this.candidates =
+      data?.map((item: any) => ({
+        user_id: item.user_id,
+        name: item.profiles?.[0]?.username ?? '使用者',
+        mbti: item.profiles?.[0]?.mbti ?? '',
+        avatar:
+          item.profiles?.[0]?.avatar_url ??
+          `https://i.pravatar.cc/150?u=${item.user_id}`,
+      })) || [];
 
-    console.log('📊 候選人查詢結果:', data);
-
-    if (!data || data.length === 0) {
-      this.candidates = [];
-      this.isWaiting = true;
-      this.isMatched = false;
-      console.log('⏳ 暫無同餐廳的候選人');
-      this.cdr.detectChanges();
-      return;
-    }
-
-    // 組裝候選人資料，確保使用真實資訊
-    this.candidates = data.map((dining: any) => ({
-      user_id: dining.user_id,
-      name: dining.profiles?.[0]?.username ?? '未命名使用者',
-      mbti: dining.profiles?.[0]?.mbti ?? '未知',
-      avatar: dining.profiles?.[0]?.avatar_url ?? `https://i.pravatar.cc/300?img=32&seed=${dining.user_id}`,
-      intro: '一起吃飯吧！',
-      restaurant_id: dining.restaurant_id
-    }));
-
-    console.log('✅ 已加載 ' + this.candidates.length + ' 位候選人，同在「' + this.restaurant.name + '」');
     this.cdr.detectChanges();
   }
 
   async likeFriend(friend: any) {
-    if (!this.currentUserId || !friend?.user_id) {
-      console.error('❌ 缺少必要信息', { currentUserId: this.currentUserId, friend });
-      return;
-    }
+    if (!this.currentUserId) return;
 
-    const { error } = await this.supabase
-      .from('likes')
-      .insert({
-        from_user_id: this.currentUserId,
-        to_user_id: friend.user_id
-      });
-
-    if (error) {
-      console.error('❌ 送出 like 失敗', error);
-      return;
-    }
-
-    console.log('👍 已送出一起吃邀請:', { from: this.currentUserId, to: friend.user_id });
-
-    // 📌 確保完整的 friend 對象包含所有必要欄位
-    const friendData = {
-      user_id: friend.user_id,
-      name: friend.name,
-      mbti: friend.mbti,
-      avatar: friend.avatar,
-      intro: friend.intro,
-      restaurant_id: friend.restaurant_id
-    };
-
-    console.log('💾 保存到 localStorage:', friendData);
-
-    // 先存資料，避免聊天室頁刷新後拿不到
-    localStorage.setItem('chat_target', friend.user_id);
-    localStorage.setItem('friend_current', JSON.stringify(friendData));
-    localStorage.setItem(
-      'friend_current_restaurant',
-      JSON.stringify(this.restaurant)
+    // ✅ 存 like
+    await this.supabase.from('likes').upsert(
+      {
+        user_id: this.currentUserId,
+        target_user_id: friend.user_id,
+      },
+      { onConflict: 'user_id,target_user_id' }
     );
 
-    // 直接跳聊天室
-    this.router.navigate(['/friend/chat'], {
-      state: {
-        friend: friendData,
-        restaurant: this.restaurant,
-        matchId: friend?.match_id ?? null
-      }
-    });
+   const { data: reverseLikes } = await this.supabase
+  .from('likes')
+  .select('user_id')
+  .eq('user_id', friend.user_id)
+  .eq('target_user_id', this.currentUserId);
+
+if (!reverseLikes || reverseLikes.length === 0) {
+  alert('已送出喜歡，等待對方中 ❤️');
+  return;
+}
+
+  async likeFriend(friend: any) {
+  if (!this.currentUserId) return;
+
+  // ✅ 先存自己的 like
+  await this.supabase.from('likes').upsert(
+  {
+    user_id: this.currentUserId,
+    target_user_id: friend.user_id,
+    created_at: new Date().toISOString(), // 🔥 加在這
+  },
+  { onConflict: 'user_id,target_user_id' }
+);
+
+  // ✅ 檢查對方是否也 like 你（關鍵）
+  const { data: reverseLikes } = await this.supabase
+  .from('likes')
+  .select('user_id, created_at')
+  .eq('user_id', friend.user_id)
+  .eq('target_user_id', this.currentUserId)
+  .gte('created_at', this.enterTime); // 🔥 關鍵！
+  // ❗ 沒互相 like → 不跳
+  if (!reverseLikes || reverseLikes.length === 0) {
+    alert('已送出喜歡，等待對方中 ❤️');
+    return;
+  }
+
+  // ✅ 有互相 like → 建立 / 取得 match
+  const { data: existing } = await this.supabase
+    .from('matches')
+    .select('*')
+    .or(
+      `and(user_a_id.eq.${this.currentUserId},user_b_id.eq.${friend.user_id}),and(user_a_id.eq.${friend.user_id},user_b_id.eq.${this.currentUserId})`
+    )
+    .maybeSingle();
+
+  let matchId;
+
+  if (existing) {
+    matchId = existing.id;
+  } else {
+    const { data: newMatch } = await this.supabase
+      .from('matches')
+      .insert({
+        user_a_id: this.currentUserId,
+        user_b_id: friend.user_id,
+        status: 'matched',
+        created_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    matchId = newMatch.id;
+  }
+
+
+
+  // ✅ 只有雙方 like 才會走到這裡
+  this.navigateToChat(friend, matchId);
+}
+
+    // 🔥 檢查是否已存在 match（避免重複）
+    const { data: existing } = await this.supabase
+      .from('matches')
+      .select('*')
+      .or(
+        `and(user_a_id.eq.${this.currentUserId},user_b_id.eq.${friend.user_id}),and(user_a_id.eq.${friend.user_id},user_b_id.eq.${this.currentUserId})`
+      )
+      .maybeSingle();
+
+    let matchId;
+
+    if (existing) {
+      matchId = existing.id;
+    } else {
+      const { data: newMatch } = await this.supabase
+        .from('matches')
+        .insert({
+          user_a_id: this.currentUserId,
+          user_b_id: friend.user_id,
+          status: 'matched',
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      matchId = newMatch.id;
+    }
+
+    this.navigateToChat(friend, matchId);
   }
 
   async checkMatch() {
     if (!this.currentUserId) return;
 
-    const { data, error } = await this.supabase
+    const { data } = await this.supabase
       .from('matches')
       .select('*')
       .or(`user_a_id.eq.${this.currentUserId},user_b_id.eq.${this.currentUserId}`)
+      .eq('status', 'matched')
+      .gte('created_at', this.enterTime) // 🔥 只抓新 match
+      .order('created_at', { ascending: false })
       .limit(1);
 
-    if (error) {
-      console.error('檢查配對失敗', error);
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      this.isMatched = false;
-      this.isWaiting = true;
-      this.cdr.detectChanges();
-      return;
-    }
+    if (!data || data.length === 0) return;
 
     const match = data[0];
 
     const otherUserId =
-      match.user_a_id === this.currentUserId ? match.user_b_id : match.user_a_id;
+      match.user_a_id === this.currentUserId
+        ? match.user_b_id
+        : match.user_a_id;
 
-    // 先從候選人列表查找
-    let friend = this.candidates.find(c => c.user_id === otherUserId);
-
-    // 如果候選人列表中沒有，從資料庫直接查詢真實資訊
-    if (!friend) {
-      const { data: profileData } = await this.supabase
-        .from('profiles')
-        .select('username, mbti, avatar_url')
-        .eq('id', otherUserId)
-        .single();
-
-      friend = {
-        user_id: otherUserId,
-        name: profileData?.username ?? '配對成功的飯友',
-        mbti: profileData?.mbti ?? '未知',
-        avatar: profileData?.avatar_url ?? 'https://i.pravatar.cc/300?img=32',
-        intro: '一起吃飯吧！',
-        match_id: match.id
-      };
-    } else {
-      friend.match_id = match.id;
-    }
-
-    this.matchedFriend = friend;
-    this.isMatched = true;
-    this.isWaiting = false;
-
-    localStorage.setItem('friend_current', JSON.stringify(friend));
-
-    console.log('✅ 配對成功，朋友資訊:', friend);
-    this.cdr.detectChanges();
+    this.navigateToChat({ user_id: otherUserId }, match.id);
   }
 
-  goToChat(friend?: any) {
-    const targetFriend = friend ?? this.matchedFriend;
+  private navigateToChat(friend: any, matchId: any) {
+    if (this.hasNavigated) return;
+    this.hasNavigated = true;
 
-    if (!targetFriend) return;
-
-    localStorage.setItem('chat_target', targetFriend.user_id);
-    localStorage.setItem('friend_current', JSON.stringify(targetFriend));
-    localStorage.setItem(
-      'friend_current_restaurant',
-      JSON.stringify(this.restaurant)
-    );
-
-    this.router.navigate(['/friend/chat'], {
+    this.router.navigate(['/friend/chat', friend.user_id], {
       state: {
-        friend: targetFriend,
+        friend,
+        matchId,
         restaurant: this.restaurant,
-        matchId: targetFriend?.match_id ?? null
-      }
+      },
     });
   }
 
-  retryMatch() {
-    // 重新整理候選人
-    this.findCandidates();
-  }
-
   ngOnDestroy() {
-    if (this.matchesChannel) {
-      this.supabase.removeChannel(this.matchesChannel);
-    }
-    if (this.pollingId) {
-      clearInterval(this.pollingId);
-    }
+    if (this.pollingId) clearInterval(this.pollingId);
   }
 }
