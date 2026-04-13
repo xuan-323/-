@@ -1,10 +1,24 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
 
+/**
+ * 應用路由配置
+ * 使用 Lazy Loading 優化性能
+ * 使用 authGuard 保護需要認證的路由
+ */
 export const routes: Routes = [
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+  // ═══════════════════════════════════════════════════════════
+  // 🏠 預設路由
+  // ═══════════════════════════════════════════════════════════
+  {
+    path: '',
+    redirectTo: 'auth/login',
+    pathMatch: 'full'
+  },
 
-  // ===== Auth =====
+  // ═══════════════════════════════════════════════════════════
+  // 🔐 認證路由（不需要 authGuard）
+  // ═══════════════════════════════════════════════════════════
   {
     path: 'auth/login',
     loadComponent: () =>
@@ -22,15 +36,16 @@ export const routes: Routes = [
         .then(m => m.UpdatePasswordComponent),
   },
 
-  // ===== Welcome =====
+  // ═══════════════════════════════════════════════════════════
+  // 📋 歡迎 & 問卷頁
+  // ═══════════════════════════════════════════════════════════
   {
     path: 'welcome',
     loadComponent: () =>
       import('./auth/welcome/welcome.component')
         .then(m => m.WelcomeComponent),
+    canMatch: [authGuard],
   },
-
-  // ===== MBTI =====
   {
     path: 'mbti',
     loadComponent: () =>
@@ -38,8 +53,6 @@ export const routes: Routes = [
         .then(m => m.MbtiComponent),
     canMatch: [authGuard],
   },
-
-  // ===== Preference =====
   {
     path: 'auth/preference',
     loadComponent: () =>
@@ -48,7 +61,31 @@ export const routes: Routes = [
     canMatch: [authGuard],
   },
 
-  // ===== 自己吃 =====
+  // ═══════════════════════════════════════════════════════════
+  // 🏠 主頁面
+  // ═══════════════════════════════════════════════════════════
+  {
+    path: 'home',
+    loadComponent: () =>
+      import('./auth/home/home.component')
+        .then(m => m.HomeComponent),
+    canMatch: [authGuard],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 👤 個人檔案
+  // ═══════════════════════════════════════════════════════════
+  {
+    path: 'profile',
+    loadComponent: () =>
+      import('./auth/profile/profile.component')
+        .then(m => m.ProfileComponent),
+    canMatch: [authGuard],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 🍽️ 自己吃流程
+  // ═══════════════════════════════════════════════════════════
   {
     path: 'solo/result',
     loadComponent: () =>
@@ -64,47 +101,54 @@ export const routes: Routes = [
     canMatch: [authGuard],
   },
   {
-  path: 'auth/solo-feedback',
-  loadComponent: () =>
-    import('./solo-feedback/solo-feedback')
-      .then(m => m.SoloFeedbackComponent),
-},
-{
-  path: 'auth/solo-thanks',
-  loadComponent: () =>
-    import('./solo-thanks/solo-thanks')
-      .then(m => m.SoloThanksComponent),
-},
-  // ===== 找飯友 =====
+    path: 'auth/solo-feedback',
+    loadComponent: () =>
+      import('./solo-feedback/solo-feedback')
+        .then(m => m.SoloFeedbackComponent),
+    canMatch: [authGuard],
+  },
+  {
+    path: 'auth/solo-thanks',
+    loadComponent: () =>
+      import('./solo-thanks/solo-thanks')
+        .then(m => m.SoloThanksComponent),
+    canMatch: [authGuard],
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // 👥 找飯友流程
+  // ═══════════════════════════════════════════════════════════
   {
     path: 'friend/result',
     loadComponent: () =>
       import('./auth/home/friend-result/friend-result')
         .then(m => m.FriendResultComponent),
+    canMatch: [authGuard],
   },
   {
     path: 'friend/matching',
     loadComponent: () =>
       import('./auth/home/friend-matching/friend-matching')
         .then(m => m.FriendMatchingComponent),
+    canMatch: [authGuard],
   },
-
-  // ===== 聊天頁（已修正🔥）=====
   {
     path: 'friend/chat',
     loadComponent: () =>
       import('./friend-chat').then(m => m.FriendChatComponent),
+    canMatch: [authGuard],
   },
-
-  // ===== 回饋頁 =====
   {
     path: 'friend/feedback',
     loadComponent: () =>
       import('./friend-feedback')
         .then(m => m.FriendFeedbackComponent),
+    canMatch: [authGuard],
   },
 
-  // ===== 歷史紀錄 =====
+  // ═══════════════════════════════════════════════════════════
+  // 📚 歷史紀錄
+  // ═══════════════════════════════════════════════════════════
   {
     path: 'history',
     loadComponent: () =>
@@ -113,39 +157,8 @@ export const routes: Routes = [
     canMatch: [authGuard],
   },
 
-// ✅ 自己吃回饋
-{
-  path: 'auth/solo-feedback',
-  loadComponent: () =>
-    import('./solo-feedback/solo-feedback')
-      .then(m => m.SoloFeedbackComponent),
-},
-
-// ✅ 結束頁
-{
-  path: 'auth/solo-thanks',
-  loadComponent: () =>
-    import('./solo-thanks/solo-thanks')
-      .then(m => m.SoloThanksComponent),
-},
-  // ===== Home =====
-  {
-    path: 'home',
-    loadComponent: () =>
-      import('./auth/home/home.component')
-        .then(m => m.HomeComponent),
-    canMatch: [authGuard],
-  },
-
-  // ===== Profile =====
-  {
-    path: 'profile',
-    loadComponent: () =>
-      import('./auth/profile/profile.component')
-        .then(m => m.ProfileComponent),
-    canMatch: [authGuard],
-  },
-
-  // ⚠️ 一定要最後
+  // ═══════════════════════════════════════════════════════════
+  // ❌ 404 - 必須是最後一個
+  // ═══════════════════════════════════════════════════════════
   { path: '**', redirectTo: 'auth/login' },
 ];

@@ -1,8 +1,31 @@
+/**
+ * 開發環境配置
+ * 用於本地開發和測試
+ */
 export const environment = {
   production: false,
 
+  // ═══════════════════════════════════════════════════════════
   // Supabase 設定
+  // ═══════════════════════════════════════════════════════════
   supabaseUrl: 'https://hamijkpsjaxltifhrppw.supabase.co',
   supabaseAnonKey: 'sb_publishable_LataTu72rxsmn883jnvjgw_af3rtxRt',
-  supabaseAnonJwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhbWlqa3BzamF4bHRpZmhycHB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQxMzA2NzYsImV4cCI6MjA3OTcwNjY3Nn0.SjNoGVLR7me57VicDef7EoCdcYZ8ojoVtvj5ANzBdFA'
+
+  // ═══════════════════════════════════════════════════════════
+  // 應用設定
+  // ═══════════════════════════════════════════════════════════
+  productionUrl: 'https://eatmeet.com',
+  appName: 'EatMeet',
+  appVersion: '1.0.0',
+
+  // ═══════════════════════════════════════════════════════════
+  // API 超時設定（毫秒）
+  // ═══════════════════════════════════════════════════════════
+  requestTimeout: 30000,
+
+  // ═══════════════════════════════════════════════════════════
+  // 日誌設定
+  // ═══════════════════════════════════════════════════════════
+  enableLogging: true,
+  logLevel: 'debug', // 'debug' | 'info' | 'warn' | 'error'
 };
