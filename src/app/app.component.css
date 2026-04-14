@@ -2,36 +2,35 @@
 /* 全域 PWA / App 容器樣式 */
 /* --------------------------------------------- */
 
-/* 設置柔和的橘色 + 粉色 + 米白漸層背景 */
 .app-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg,
-        #FFFBEB 0%,
-        #FFEBEB 40%,
-        #FFD7A3 100%
-    );
-    font-family: 'Inter', sans-serif;
-    padding: 0;
-    margin: 0 auto;
-    max-width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    #fffbeb 0%,
+    #ffebeb 40%,
+    #ffd7a3 100%
+  );
+  font-family: 'Inter', sans-serif;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 100%;
 }
 
-/* 統一的大圓角風格 */
-button, input, .card {
-    border-radius: 1.5rem;
+button,
+input,
+.card {
+  border-radius: 1.5rem;
 }
 
 /* --------------------------------------------- */
-/* ✅ 修正：聊天浮動按鈕往上移，避免壓到送出按鈕 */
+/* 浮動按鈕 */
 /* --------------------------------------------- */
 
-.chat-fab{
+/* 聊天按鈕（下面那顆） */
+.chat-fab {
   position: fixed;
   right: 22px;
-
-  /* 🔥 往上推，避免壓到聊天輸入列 */
-  bottom: 110px;
-
+  bottom: 190px !important; /* 往上拉，避開輸入框和送出鍵 */
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -40,19 +39,20 @@ button, input, .card {
   color: #fff;
   font-size: 26px;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(0,0,0,.25);
-  transition: transform .15s ease;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
   z-index: 9999;
 }
 
-.chat-fab:hover{
+.chat-fab:hover {
   transform: translateY(-2px);
 }
 
-.history-fab{
+/* 歷史按鈕（上面那顆） */
+.history-fab {
   position: fixed;
   right: 22px;
-  bottom: 92px; /* 在聊天按鈕上方 */
+  bottom: 265px !important; /* 永遠在 chat 上方 */
   width: 54px;
   height: 54px;
   border-radius: 50%;
@@ -61,53 +61,11 @@ button, input, .card {
   color: #000;
   font-size: 22px;
   cursor: pointer;
-  box-shadow: 0 12px 28px rgba(0,0,0,.18);
-  transition: transform .15s ease;
-  z-index: 999;
-}
-.history-fab:hover{
-  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease;
+  z-index: 9998;
 }
 
-
-.chat-fab{
-  position: fixed;
-  right: 22px;
-  bottom: 22px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: none;
-  background: #000;
-  color: #fff;
-  font-size: 26px;
-  cursor: pointer;
-  box-shadow: 0 12px 28px rgba(0,0,0,.25);
-  transition: transform .15s ease;
-  z-index: 999;
-}
-
-.chat-fab:hover{
-  transform: translateY(-2px);
-}
-
-/* ✅ 歷史按鈕：固定在聊天按鈕上方 */
-.history-fab{
-  position: fixed;
-  right: 22px;
-  bottom: 96px; /* 22 + 60 + 14 = 96 (留間距) */
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  border: none;
-  background: #fff;
-  color: #000;
-  font-size: 22px;
-  cursor: pointer;
-  box-shadow: 0 12px 28px rgba(0,0,0,.18);
-  transition: transform .15s ease;
-  z-index: 999;
-}
-.history-fab:hover{
+.history-fab:hover {
   transform: translateY(-2px);
 }

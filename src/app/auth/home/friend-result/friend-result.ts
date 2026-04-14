@@ -1,3 +1,4 @@
+console.log('🔥 confirm 有被點擊');
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -71,6 +72,7 @@ export class FriendResultComponent implements OnInit {
 
       if (!session) {
         console.error('❌ 沒有 session');
+        alert('請先登入');
         return;
       }
 
@@ -125,6 +127,7 @@ export class FriendResultComponent implements OnInit {
       this.cdr.detectChanges();
     } catch (err) {
       console.error('❌ 取得餐廳失敗', err);
+      alert('取得餐廳失敗');
     }
   }
 
@@ -142,23 +145,34 @@ export class FriendResultComponent implements OnInit {
   }
 
   async confirm() {
-    if (!this.selected || !this.restaurant) return;
+    console.log('🔥 confirm 有被點擊');
+console.log('🔥 selected =', this.selected, 'restaurant =', this.restaurant);
+    if (!this.restaurant) {
+      alert('目前沒有餐廳資料');
+      return;
+    }
+
+    if (!this.selected) {
+      alert('請先點選餐廳卡片');
+      return;
+    }
 
     try {
       const {
-  data: { user },
-  error: userError,
-} = await this.supabase.auth.getUser();
+        data: { user },
+        error: userError,
+      } = await this.supabase.auth.getUser();
 
-if (userError || !user) {
-  console.error('❌ 取得使用者失敗:', userError);
-  alert('使用者未登入');
-  return;
-}
+      if (userError || !user) {
+        console.error('❌ 取得使用者失敗:', userError);
+        alert('使用者未登入');
+        return;
+      }
 
-console.log('🟢 目前登入 user.id =', user.id);
-    console.log('🟢 目前登入 email =', user.email);
-    console.log('🟢 餐廳 =', this.restaurant.name);
+      console.log('🟢 confirm 被觸發');
+      console.log('🟢 目前登入 user.id =', user.id);
+      console.log('🟢 目前登入 email =', user.email);
+      console.log('🟢 餐廳 =', this.restaurant.name);
 
       // 1. 建立或取得餐廳
       const { data: restaurantData, error: restaurantError } = await this.supabase
@@ -172,6 +186,7 @@ console.log('🟢 目前登入 user.id =', user.id);
 
       if (restaurantError || !restaurantData) {
         console.error('❌ 餐廳寫入失敗:', restaurantError);
+        alert('餐廳寫入失敗');
         return;
       }
 
@@ -186,6 +201,7 @@ console.log('🟢 目前登入 user.id =', user.id);
 
       if (deleteError) {
         console.error('❌ 清除舊配對請求失敗:', deleteError);
+        alert('清除舊配對請求失敗');
         return;
       }
 
@@ -211,10 +227,12 @@ console.log('🟢 目前登入 user.id =', user.id);
 
       if (insertError) {
         console.error('❌ 寫入配對池失敗:', insertError);
+        alert('寫入配對池失敗');
         return;
       }
 
       console.log('✅ 已加入配對池:', insertData);
+      alert('已成功加入配對池');
 
       // 4. 整理要傳去 matching 的餐廳資料
       const restaurantForMatching: Restaurant = {
@@ -241,6 +259,7 @@ console.log('🟢 目前登入 user.id =', user.id);
       });
     } catch (err) {
       console.error('❌ confirm 系統錯誤:', err);
+      alert('confirm 系統錯誤');
     }
   }
 }

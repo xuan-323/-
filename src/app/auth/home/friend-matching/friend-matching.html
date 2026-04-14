@@ -1,33 +1,31 @@
-<div class="matching-page">
-  <h1 class="title">🍽️ 食伴配對</h1>
+<div class="page">
+  <div class="header">
+    <h1 class="title">🍽️ 食伴配對</h1>
+    <p class="subtitle">
+      正在為你尋找一起去「{{ restaurant?.name }}」的飯友
+    </p>
+  </div>
 
-  <p class="subtitle" *ngIf="restaurant">
-    正在為你尋找一起去「{{ restaurant.name }}」的飯友
-  </p>
-
-  <div class="waiting-box">
+  <div class="loading-box">
     <div class="loader"></div>
-    <p class="waiting-text">等待中，正在尋找和你選同家餐廳的人...</p>
+    <p class="loading-text">等待中，正在尋找和你選同家餐廳的人...</p>
+    <button class="refresh-btn" (click)="retryMatch()">重新整理</button>
+  </div>
 
-    <div class="waiting-actions">
-      <button class="secondary-btn" (click)="retryMatch()">重新整理</button>
+  <div class="cards-wrapper" *ngIf="candidates.length > 0">
+    <div class="candidate-card" *ngFor="let user of candidates">
+      <img
+        [src]="user.avatar"
+        class="avatar"
+        (error)="user.avatar = 'https://i.pravatar.cc/150?u=' + user.user_id"
+      />
+
+      <h3 class="name">{{ user.name }}</h3>
+      <p class="intro">一起吃飯吧！</p>
+
+      <button class="like-btn" (click)="likeFriend(user)">
+        一起吃 💕
+      </button>
     </div>
-
-    <div class="candidate-list" *ngIf="candidates.length > 0; else emptyState">
-      <div class="candidate-card" *ngFor="let friend of candidates">
-        <img [src]="friend.avatar" class="avatar" />
-        <h3>{{ friend.name }}</h3>
-        <p class="mbti">{{ friend.mbti }}</p>
-        <p class="intro">一起吃飯吧！</p>
-
-        <button class="primary-btn" (click)="likeFriend(friend)">
-          一起吃 🍜
-        </button>
-      </div>
-    </div>
-
-    <ng-template #emptyState>
-      <p class="waiting-text">稍等～目前還沒找到同餐廳的人</p>
-    </ng-template>
   </div>
 </div>

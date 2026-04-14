@@ -22,8 +22,11 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
   candidates: any[] = [];
   currentUserId: string | null = null;
 
+  isWaiting = true;
+
   private pollingId: any = null;
   private hasNavigated = false;
+  private hasLikedSomeone = false;
 
   constructor(
     private router: Router,
@@ -46,17 +49,21 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
 
     await this.findCandidates();
 
-    // ⭐ 輪詢（讓另一方自動跳）
     this.pollingId = setInterval(async () => {
-      await this.checkMatch();
       await this.findCandidates();
+      await this.checkMatch();
     }, 1000);
   }
 
   async findCandidates() {
-    if (!this.currentUserId || !this.restaurant?.name) return;
+    if (!this.currentUserId || !this.restaurant?.name) {
+      this.candidates = [];
+      this.isWaiting = true;
+      this.cdr.detectChanges();
+      return;
+    }
 
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('dining_requests')
       .select(`
         user_id,
@@ -70,52 +77,79 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       .eq('dining_type', 'match')
       .neq('user_id', this.currentUserId);
 
-    this.candidates =
-      data?.map((item: any) => ({
-        user_id: item.user_id,
-        name: item.profiles?.[0]?.username ?? '使用者',
-        avatar:
-          item.profiles?.[0]?.avatar_url ??
-          `https://i.pravatar.cc/150?u=${item.user_id}`,
-      })) || [];
+    if (error) {
+      console.error('❌ 抓候選人失敗:', error);
+      return;
+    }
 
+    console.log('👥 找到候選人:', data);
+
+    this.candidates =
+      data?.map((item: any) => {
+        const username =
+          item?.profiles?.username?.trim?.() ||
+          item?.profiles?.username ||
+          item?.user_id?.slice(0, 8) ||
+          '使用者';
+
+        const avatar =
+          item?.profiles?.avatar_url &&
+          String(item.profiles.avatar_url).trim() !== ''
+            ? item.profiles.avatar_url
+            : `https://i.pravatar.cc/150?u=${item.user_id}`;
+
+        return {
+          user_id: item.user_id,
+          name: username,
+          avatar,
+        };
+      }) || [];
+
+    this.isWaiting = this.candidates.length === 0;
     this.cdr.detectChanges();
   }
 
-  // ❤️ 按 like（核心）
   async likeFriend(friend: any) {
     if (!this.currentUserId || !friend?.user_id) return;
 
-    // ⭐ 防止重複跳
     this.hasNavigated = false;
+    this.hasLikedSomeone = true;
 
-    // 1️⃣ 我 like 對方
-    await this.supabase.from('likes').upsert(
-      {
-        user_id: this.currentUserId,
-        target_user_id: friend.user_id,
-      },
-      { onConflict: 'user_id,target_user_id' }
-    );
+    const { error: likeError } = await this.supabase
+      .from('likes')
+      .upsert(
+        {
+          user_id: this.currentUserId,
+          target_user_id: friend.user_id,
+        },
+        { onConflict: 'user_id,target_user_id' }
+      );
+
+    if (likeError) {
+      console.error('❌ like 失敗:', likeError);
+      return;
+    }
 
     console.log('👍 我按 like');
 
-    // 2️⃣ 檢查對方有沒有 like 我
-    const { data: reverse } = await this.supabase
+    const { data: reverse, error: reverseError } = await this.supabase
       .from('likes')
       .select('*')
       .eq('user_id', friend.user_id)
       .eq('target_user_id', this.currentUserId)
       .maybeSingle();
 
-    // ❌ 沒互 like
-    if (!reverse) {
-      alert('已送出喜歡 ❤️');
+    if (reverseError) {
+      console.error('❌ 檢查 reverse like 失敗:', reverseError);
       return;
     }
 
-    // 3️⃣ 檢查是否已有 match（🔥重點）
-    const { data: existing } = await this.supabase
+    if (!reverse) {
+      alert('已送出喜歡 ❤️，等待對方中');
+      return;
+    }
+
+    const { data: existing, error: existingError } = await this.supabase
       .from('matches')
       .select('*')
       .or(
@@ -123,12 +157,17 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
       )
       .maybeSingle();
 
-    let matchId;
+    if (existingError) {
+      console.error('❌ 查 existing match 失敗:', existingError);
+      return;
+    }
+
+    let matchId: any;
 
     if (existing) {
       matchId = existing.id;
     } else {
-      const { data: newMatch, error } = await this.supabase
+      const { data: newMatch, error: newMatchError } = await this.supabase
         .from('matches')
         .insert({
           user_a_id: this.currentUserId,
@@ -139,8 +178,8 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
         .select()
         .single();
 
-      if (error) {
-        console.error('❌ 建立 match 失敗:', error);
+      if (newMatchError) {
+        console.error('❌ 建立 match 失敗:', newMatchError);
         return;
       }
 
@@ -148,24 +187,24 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     }
 
     console.log('🔥 MATCH 成功');
-
-    // 4️⃣ 跳聊天室
     this.navigateToChat(friend, matchId);
   }
 
-  // 🔥 讓另一方自動跳
   async checkMatch() {
-    if (!this.currentUserId || this.hasNavigated) return;
+    if (!this.currentUserId || this.hasNavigated || !this.hasLikedSomeone) return;
 
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('matches')
       .select('*')
-      .or(
-        `user_a_id.eq.${this.currentUserId},user_b_id.eq.${this.currentUserId}`
-      )
+      .or(`user_a_id.eq.${this.currentUserId},user_b_id.eq.${this.currentUserId}`)
       .eq('status', 'accepted')
       .order('created_at', { ascending: false })
       .limit(1);
+
+    if (error) {
+      console.error('❌ checkMatch 失敗:', error);
+      return;
+    }
 
     if (!data || data.length === 0) return;
 
@@ -179,7 +218,7 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
     const friend =
       this.candidates.find(c => c.user_id === targetId) ?? {
         user_id: targetId,
-        name: '使用者',
+        name: targetId?.slice?.(0, 8) || '使用者',
         avatar: `https://i.pravatar.cc/150?u=${targetId}`,
       };
 
@@ -210,7 +249,6 @@ export class FriendMatchingComponent implements OnInit, OnDestroy {
 
   async retryMatch() {
     await this.findCandidates();
-    await this.checkMatch();
   }
 
   ngOnDestroy() {
