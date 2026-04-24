@@ -1,9 +1,11 @@
-import { Component, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild, AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../environments/environment';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 interface Message {
   id: string | number;
@@ -19,7 +21,8 @@ interface Message {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './friend-chat.html',
-  styleUrls: ['./friend-chat.css']
+  styleUrls: ['./friend-chat.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
@@ -32,6 +35,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   currentUser: any;
   targetUserId: string | null = null;
+  messages$ = new BehaviorSubject<Message[]>([]);
   messages: Message[] = [];
   newMessage: string = '';
 
@@ -41,8 +45,21 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   private subscription: RealtimeChannel | null = null;
   private messageCheckTimer: any = null;
+  private destroy$ = new Subject<void>();
+  private isLoadingMessages = false;
+  private lastCheckedTime: number = 0;
 
-  constructor(private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {
+    // ✅ 訂閱消息流
+    this.messages$.pipe(takeUntil(this.destroy$)).subscribe(msgs => {
+      this.messages = msgs;
+      this.cdr.markForCheck();
+    });
+  }
 
   async ngOnInit() {
     console.log('🔍 聊天頁面初始化...');
@@ -90,18 +107,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     console.log('✅ 當前使用者:', this.currentUser.id);
 
     // 3. 從路由參數獲取 targetUserId（新增支持 URL 參數）
-    this.route.params.subscribe(async (params) => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(async (params) => {
       const newTargetId = params['id'];
       if (newTargetId && newTargetId !== this.targetUserId) {
         this.targetUserId = newTargetId;
         console.log('🔄 從 URL 參數更新 targetUserId:', this.targetUserId);
         // 清除舊訂閱，重新加載新聊天
-        if (this.subscription) {
-          this.supabase.removeChannel(this.subscription);
-          this.subscription = null;
-        }
+        this.cleanupSubscriptions();
         await this.loadMessages();
         this.listenMessages();
+        this.cdr.markForCheck();
       }
     });
 
@@ -113,7 +128,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     // 5. 驗證必要的數據
     if (!this.targetUserId) {
-      console.error('❌ 沒有聊天對象，無法進行聊天。数据:', {
+      console.error('❌ 沒有聊天對象，無法進行聊天。數據:', {
         friendId: this.friend?.user_id,
         storedChatTarget: localStorage.getItem('chat_target'),
         storedFriend: localStorage.getItem('friend_current')
@@ -131,11 +146,17 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // ✅ 修復 #1: 替換 .or() 查詢為分開查詢，避免 404 錯誤
   async loadMessages() {
+    if (this.isLoadingMessages) {
+      console.log('⏳ 正在加載消息，跳過重複請求');
+      return;
+    }
+
     if (!this.currentUser?.id || !this.targetUserId) {
       console.log('❌ 缺少必要信息', { userId: this.currentUser?.id, targetId: this.targetUserId });
       return;
     }
 
+    this.isLoadingMessages = true;
     console.log('📡 開始加載訊息:', { from: this.currentUser.id, to: this.targetUserId });
 
     try {
@@ -147,7 +168,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         .eq('receiver_id', this.targetUserId)
         .order('created_at', { ascending: true });
 
-      if (sentError) throw sentError;
+      if (sentError) {
+        console.error('❌ 加載已發送消息失敗:', sentError);
+        throw sentError;
+      }
 
       // 分開查詢：我接收的消息
       const { data: received, error: receivedError } = await this.supabase
@@ -157,37 +181,49 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         .eq('receiver_id', this.currentUser.id)
         .order('created_at', { ascending: true });
 
-      if (receivedError) throw receivedError;
+      if (receivedError) {
+        console.error('❌ 加載已接收消息失敗:', receivedError);
+        throw receivedError;
+      }
 
       // 合併並排序
       const allMessages = [...(sent || []), ...(received || [])].sort(
         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
 
-      this.messages = allMessages;
-      console.log('✅ 已加載 ' + this.messages.length + ' 條消息');
-      setTimeout(() => this.scrollToBottom(), 100);
+      this.messages$.next(allMessages);
+      console.log('✅ 已加載 ' + allMessages.length + ' 條消息');
+      this.lastCheckedTime = Date.now();
+      
+      // 使用多個滾動機制確保成功
+      this.scrollToBottom();
+      setTimeout(() => this.scrollToBottom(), 50);
+      setTimeout(() => this.scrollToBottom(), 150);
     } catch (error) {
       console.error('❌ 加載訊息錯誤:', error);
+    } finally {
+      this.isLoadingMessages = false;
     }
   }
 
-  // ✅ 修復 #2: 監聽聊天消息並添加心跳檢測
+  // ✅ 修復 #2: 改進 Realtime 監聽並添加優化的心跳檢測
   private listenMessages() {
-    if (!this.currentUser?.id || !this.targetUserId) return;
+    if (!this.currentUser?.id || !this.targetUserId) {
+      console.warn('⚠️ 無法建立監聽：缺少必要參數');
+      return;
+    }
 
     // 清除舊的監聽器
-    if (this.subscription) {
-      this.supabase.removeChannel(this.subscription);
-    }
-    if (this.messageCheckTimer) {
-      clearInterval(this.messageCheckTimer);
-    }
+    this.cleanupSubscriptions();
 
     // 建立聊天頻道（使用排序後的 ID 確保一致性）
     const [id1, id2] = [this.currentUser.id, this.targetUserId].sort();
+    const channelName = `chat_${id1}_${id2}`;
+    
+    console.log('🚀 建立 Realtime 訂閱:', channelName);
+
     this.subscription = this.supabase
-      .channel(`chat_${id1}_${id2}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -197,64 +233,114 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
         },
         (payload) => {
           const newMsg: any = payload.new;
+          console.log('📨 Realtime 收到新消息:', newMsg);
+          
+          // 驗證這條消息是否屬於當前聊天
           const isThisChat =
             (newMsg.sender_id === this.currentUser.id && newMsg.receiver_id === this.targetUserId) ||
             (newMsg.sender_id === this.targetUserId && newMsg.receiver_id === this.currentUser.id);
 
-          if (!isThisChat) return;
+          if (!isThisChat) {
+            console.log('⚠️ 消息不屬於當前聊天，忽略');
+            return;
+          }
 
-          const exists = this.messages.some(msg => msg.id === newMsg.id);
-          if (exists) return;
+          // 檢查消息是否已存在
+          const currentMessages = this.messages$.value;
+          const exists = currentMessages.some(msg => msg.id === newMsg.id);
+          if (exists) {
+            console.log('⚠️ 消息已存在，忽略重複');
+            return;
+          }
 
-          console.log('📨 收到新消息:', newMsg);
-          this.messages.push(newMsg);
+          // 添加新消息
+          console.log('✅ 添加新消息到列表');
+          this.messages$.next([...currentMessages, newMsg]);
+          this.lastCheckedTime = Date.now();
+          
+          // 立即滾動到底部
           this.scrollToBottom();
+          setTimeout(() => this.scrollToBottom(), 50);
 
+          // 如果是来自对方的消息，显示通知
           if (newMsg.sender_id === this.targetUserId) {
             this.showBrowserNotification(newMsg.content);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Realtime 訂閱狀態:', status);
+      });
 
-    console.log('📡 建立聊天頻道: chat_' + id1 + '_' + id2);
-
-    // 添加 5 秒心跳檢測（如果 Realtime 失敗則用輪詢補救）
+    // ✨ 改進的心跳檢測：1 秒檢查一次，但只查最近 1 秒的消息
     this.messageCheckTimer = setInterval(async () => {
       if (!this.currentUser?.id || !this.targetUserId) return;
+      
+      // 避免检查太频繁中没有新消息发生时的重复检查
+      const oneSecondAgo = new Date(Date.now() - 1000).toISOString();
 
-      const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+      try {
+        const { data: sent } = await this.supabase
+          .from('messages')
+          .select('*')
+          .eq('sender_id', this.currentUser.id)
+          .eq('receiver_id', this.targetUserId)
+          .gte('created_at', oneSecondAgo);
 
-      const { data: sent } = await this.supabase
-        .from('messages')
-        .select('*')
-        .eq('sender_id', this.currentUser.id)
-        .eq('receiver_id', this.targetUserId)
-        .gte('created_at', fiveSecondsAgo);
+        const { data: received } = await this.supabase
+          .from('messages')
+          .select('*')
+          .eq('sender_id', this.targetUserId)
+          .eq('receiver_id', this.currentUser.id)
+          .gte('created_at', oneSecondAgo);
 
-      const { data: received } = await this.supabase
-        .from('messages')
-        .select('*')
-        .eq('sender_id', this.targetUserId)
-        .eq('receiver_id', this.currentUser.id)
-        .gte('created_at', fiveSecondsAgo);
+        const recentMessages = [...(sent || []), ...(received || [])];
+        const currentMessages = this.messages$.value;
+        
+        let hasNewMessages = false;
+        recentMessages.forEach(msg => {
+          if (!currentMessages.some(m => m.id === msg.id)) {
+            console.log('💓 心跳檢測到新消息:', msg);
+            currentMessages.push(msg);
+            hasNewMessages = true;
+          }
+        });
 
-      const recentMessages = [...(sent || []), ...(received || [])];
-      recentMessages.forEach(msg => {
-        if (!this.messages.some(m => m.id === msg.id)) {
-          console.log('💓 心跳檢測到新消息:', msg);
-          this.messages.push(msg);
+        if (hasNewMessages) {
+          // 重新排序以確保順序正確
+          currentMessages.sort(
+            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+          this.messages$.next([...currentMessages]);
+          
+          // 立即滾動到底部
           this.scrollToBottom();
+          setTimeout(() => this.scrollToBottom(), 50);
         }
-      });
-    }, 5000);
+      } catch (error) {
+        console.error('❌ 心跳檢測失敗:', error);
+      }
+    }, 1000);
   }
 
   scrollToBottom() {
-    try {
-      this.myScrollContainer.nativeElement.scrollTop =
-        this.myScrollContainer.nativeElement.scrollHeight;
-    } catch {}
+    if (!this.myScrollContainer) {
+      console.warn('⚠️ scrollContainer 還未初始化');
+      return;
+    }
+
+    // 使用 requestAnimationFrame 確保 DOM 已更新
+    requestAnimationFrame(() => {
+      try {
+        const element = this.myScrollContainer.nativeElement;
+        if (element) {
+          element.scrollTop = element.scrollHeight;
+          console.log('✅ 滾動至底部 | 高度:', element.scrollHeight);
+        }
+      } catch (error) {
+        console.error('❌ 滾動失敗:', error);
+      }
+    });
   }
 
   async sendMessage() {
@@ -265,30 +351,68 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
 
     const text = this.newMessage.trim();
+    console.log('📤 準備發送消息:', text);
 
     try {
-      const { error } = await this.supabase
+      const { data, error } = await this.supabase
         .from('messages')
         .insert({
           sender_id: this.currentUser.id,
           receiver_id: this.targetUserId,
           content: text
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
-        throw error;
+        console.error('❌ 發送失敗:', error);
+        alert('❌ 失敗：' + (error?.message || '未知錯誤'));
+        return;
       }
 
-      console.log('✅ 消息發送成功');
+      console.log('✅ 消息發送成功，數據:', data);
+      
+      // 清空輸入框
       this.newMessage = '';
+      this.cdr.markForCheck();
+
+      // 確保消息顯示（防止 Realtime 延遲）
+      if (data) {
+        const currentMessages = this.messages$.value;
+        if (!currentMessages.some(m => m.id === data.id)) {
+          this.messages$.next([...currentMessages, data]);
+          
+          // 立即滾動到底部
+          this.scrollToBottom();
+          setTimeout(() => this.scrollToBottom(), 50);
+          setTimeout(() => this.scrollToBottom(), 150);
+        }
+      }
     } catch (error: any) {
-      console.error('❌ 發送訊息錯誤:', error);
-      alert('❌ 失敗：' + (error?.message || '未知錯誤'));
+      console.error('❌ 發送訊息異常:', error);
+      alert('❌ 異常：' + (error?.message || '未知錯誤'));
+      // 恢復消息內容
+      this.newMessage = text;
+      this.cdr.markForCheck();
     }
   }
 
   isMe(msg: Message): boolean {
     return msg.sender_id === this.currentUser?.id;
+  }
+
+  // ✅ 用餐完成 → 跳回饋頁
+  finishMeal() {
+    localStorage.setItem('friend_feedback_restaurant', JSON.stringify(this.restaurant || null));
+    localStorage.setItem('friend_feedback_friend', JSON.stringify(this.friend || null));
+
+    this.router.navigate(['/friend/feedback'], {
+      state: {
+        restaurant: this.restaurant,
+        friend: this.friend,
+        matchId: this.matchId
+      }
+    });
   }
 
   addEmoji(emoji: string) {
@@ -315,30 +439,41 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  // ✅ 用餐完成 → 跳回饋頁
-  finishMeal() {
-    localStorage.setItem('friend_feedback_restaurant', JSON.stringify(this.restaurant || null));
-    localStorage.setItem('friend_feedback_friend', JSON.stringify(this.friend || null));
-
-    this.router.navigate(['/friend/feedback'], {
-      state: {
-        restaurant: this.restaurant,
-        friend: this.friend,
-        matchId: this.matchId
+  // ✅ 新增：集中管理訂閱清理
+  private cleanupSubscriptions() {
+    console.log('🧹 清理舊訂閱...');
+    
+    if (this.subscription) {
+      try {
+        this.supabase.removeChannel(this.subscription);
+        this.subscription = null;
+        console.log('✅ Realtime 訂閱已清理');
+      } catch (error) {
+        console.error('❌ 清理 Realtime 訂閱失敗:', error);
       }
-    });
+    }
+
+    if (this.messageCheckTimer) {
+      clearInterval(this.messageCheckTimer);
+      this.messageCheckTimer = null;
+      console.log('✅ 心跳檢測已停止');
+    }
   }
 
   ngAfterViewChecked() {
-    this.scrollToBottom();
+    // 每次視圖檢查後嘗試滾動（以防 DOM 剛好更新）
+    try {
+      this.scrollToBottom();
+    } catch (error) {
+      console.error('❌ ngAfterViewChecked 滾動失敗:', error);
+    }
   }
 
   ngOnDestroy() {
-    if (this.subscription) {
-      this.supabase.removeChannel(this.subscription);
-    }
-    if (this.messageCheckTimer) {
-      clearInterval(this.messageCheckTimer);
-    }
+    console.log('🛑 聊天組件銷毀...');
+    this.cleanupSubscriptions();
+    this.destroy$.next();
+    this.destroy$.complete();
+    console.log('✅ 聊天組件已完全清理');
   }
 }

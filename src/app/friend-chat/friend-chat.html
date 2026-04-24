@@ -4,10 +4,10 @@
     💬 聊天室
   </div>
 
-  <div class="chat-body">
+  <div class="chat-body" #scrollMe>
 
     <div
-      *ngFor="let msg of messages"
+      *ngFor="let msg of messages; trackBy: trackById"
       [class.me]="isMe(msg)"
       [class.other]="!isMe(msg)"
       class="message"

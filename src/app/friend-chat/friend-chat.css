@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   background: #f5f5f5;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -10,36 +11,59 @@
   background: #ff914d;
   color: white;
   font-weight: bold;
+  flex-shrink: 0;
 }
 
 .chat-body {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .message {
   max-width: 70%;
   padding: 10px;
   border-radius: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
+  word-wrap: break-word;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .me {
   background: #3b82f6;
   color: white;
   margin-left: auto;
+  align-self: flex-end;
 }
 
 .other {
   background: white;
   border: 1px solid #ddd;
+  align-self: flex-start;
 }
 
 .chat-input {
   display: flex;
   padding: 10px;
   background: white;
+  flex-shrink: 0;
+  border-top: 1px solid #e0e0e0;
 }
 
 .chat-input input {
@@ -56,6 +80,12 @@
   color: white;
   border: none;
   border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.chat-input button:hover {
+  background: #ff8036;
 }
 
 .finish-meal-bar {
@@ -63,6 +93,7 @@
   display: flex;
   justify-content: center;
   background: #fff;
+  flex-shrink: 0;
 }
 
 .finish-meal-btn {
@@ -77,6 +108,7 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(255, 159, 67, 0.25);
+  transition: transform 0.2s;
 }
 
 .finish-meal-btn:hover {
