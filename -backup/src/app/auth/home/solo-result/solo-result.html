@@ -1,0 +1,34 @@
+<div class="page">
+  <h1 class="main-title">自己吃 🍱</h1>
+  <p class="sub-title" *ngIf="selectedTag">正在搜尋：#{{ selectedTag }}</p>
+
+  <div class="status-container">
+    <p class="hint" *ngIf="isLoading">正在幫你找附近的餐廳…</p>
+    <p class="hint error-text" *ngIf="!isLoading && errorMessage">{{ errorMessage }}</p>
+  </div>
+
+  <div class="cards" *ngIf="!isLoading && restaurants.length > 0">
+    <div
+      class="card"
+      *ngFor="let r of restaurants; let i = index"
+      [class.selected]="selectedIndex === i"
+      (click)="selectCard(i)"
+    >
+      <img [src]="r.image" alt="restaurant" />
+      <div class="card-body">
+        <h3>{{ r.name }}</h3>
+
+        <div class="tags">
+          <span *ngFor="let t of r.tags">#{{ t }}</span>
+        </div>
+
+        <p class="distance">📍 距離約 {{ r.distance }} km</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions" *ngIf="!isLoading && restaurants.length > 0">
+    <button class="btn secondary" (click)="shuffle()">🔄 換一個</button>
+    <button class="btn primary" (click)="finish()">✅ 完成</button>
+  </div>
+</div>

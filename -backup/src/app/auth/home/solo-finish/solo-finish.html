@@ -1,0 +1,17 @@
+<div class="page">
+  <h1 class="title">今天就吃這間吧！</h1>
+
+  <div class="card" *ngIf="restaurant">
+    <img [src]="restaurant.image" alt="restaurant" />
+    <div class="card-body">
+      <h2>{{ restaurant.name }}</h2>
+      <p>{{ restaurant.tags?.join('、') }}</p>
+      <p>距離你 {{ restaurant.distance }} km</p>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary" (click)="openMap()">📍 開啟地圖</button>
+    <button class="btn secondary" (click)="shuffle()">再選一次</button>
+  </div>
+</div>

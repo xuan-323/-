@@ -1,0 +1,19 @@
+/* 全站統一 */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* App容器（關鍵🔥） */
+.page {
+  width: min(420px, 92vw);
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 20px;
+}

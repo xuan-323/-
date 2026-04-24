@@ -1,0 +1,71 @@
+/* --------------------------------------------- */
+/* 全域 PWA / App 容器樣式 */
+/* --------------------------------------------- */
+
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    #fffbeb 0%,
+    #ffebeb 40%,
+    #ffd7a3 100%
+  );
+  font-family: 'Inter', sans-serif;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+button,
+input,
+.card {
+  border-radius: 1.5rem;
+}
+
+/* --------------------------------------------- */
+/* 浮動按鈕 */
+/* --------------------------------------------- */
+
+/* 聊天按鈕（下面那顆） */
+.chat-fab {
+  position: fixed;
+  right: 22px;
+  bottom: 190px !important; /* 往上拉，避開輸入框和送出鍵 */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: #000;
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+  z-index: 9999;
+}
+
+.chat-fab:hover {
+  transform: translateY(-2px);
+}
+
+/* 歷史按鈕（上面那顆） */
+.history-fab {
+  position: fixed;
+  right: 22px;
+  bottom: 265px !important; /* 永遠在 chat 上方 */
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #000;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease;
+  z-index: 9998;
+}
+
+.history-fab:hover {
+  transform: translateY(-2px);
+}

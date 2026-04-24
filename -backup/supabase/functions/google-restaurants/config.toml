@@ -1,0 +1,2 @@
+[functions.google-restaurants]
+verify_jwt = false

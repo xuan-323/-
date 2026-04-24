@@ -1,0 +1,37 @@
+<div class="chat-page">
+
+  <div class="chat-header">
+    💬 聊天室
+  </div>
+
+  <div class="chat-body">
+
+    <div
+      *ngFor="let msg of messages"
+      [class.me]="isMe(msg)"
+      [class.other]="!isMe(msg)"
+      class="message"
+    >
+      {{ msg.content }}
+    </div>
+
+  </div>
+
+  <div class="chat-input">
+
+    <input
+      [(ngModel)]="newMessage"
+      placeholder="輸入訊息..."
+    />
+
+    <button (click)="sendMessage()">送出</button>
+
+  </div>
+
+<div class="finish-meal-bar">
+  <button class="finish-meal-btn" (click)="finishMeal()">
+    🍽️ 用餐完成
+  </button>
+</div>
+
+</div>

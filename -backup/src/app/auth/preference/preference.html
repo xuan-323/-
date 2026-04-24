@@ -1,0 +1,37 @@
+<div class="page">
+  <!-- 你原本全部內容 -->
+</div>
+<div class="preference-container">
+
+  <!-- 標題 -->
+  <h1 class="title-main">今天想吃什麼？</h1>
+  <p class="title-sub">請選擇您的口味偏好</p>
+
+  <!-- 標籤區 -->
+  <div class="tags-grid">
+    <div
+      class="tag-card"
+      *ngFor="let tag of tags"
+      (click)="selectTag(tag)"
+      [class.selected]="selectedTag === tag"
+    >
+      <div class="tag-icon">
+        {{ iconMap[tag] }}
+      </div>
+
+      <div class="tag-text">
+        {{ tag }}
+      </div>
+    </div>
+  </div>
+
+  <!-- 完成設定 -->
+  <button
+    class="save-btn"
+    [disabled]="!selectedTag"
+    (click)="onSave()"
+  >
+    完成設定
+  </button>
+
+</div>

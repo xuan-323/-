@@ -1,0 +1,61 @@
+<div class="page">
+
+  <h1 class="title">選擇你的 MBTI</h1>
+  <p class="subtitle">只需要選一次，之後可在個人資料修改</p>
+
+  <!-- MBTI -->
+  <div class="section">
+    <div class="grid">
+      <button
+        class="mbti-card"
+        *ngFor="let m of mbtis"
+        (click)="selectMbti(m)"
+        [class.active]="selectedMbti === m"
+      >
+        {{ m }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 星座 -->
+  <div class="section">
+    <h2 class="section-title">選擇你的星座</h2>
+
+    <div class="grid small">
+      <button
+        class="mbti-card"
+        *ngFor="let z of zodiacOptions"
+        (click)="selectZodiac(z)"
+        [class.active]="selectedZodiac === z"
+      >
+        {{ z }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 性別 -->
+  <div class="section">
+    <h2 class="section-title">選擇你的性別</h2>
+
+    <div class="grid small">
+      <button
+        class="mbti-card"
+        *ngFor="let g of genderOptions"
+        (click)="selectGender(g)"
+        [class.active]="selectedGender === g"
+      >
+        {{ g }}
+      </button>
+    </div>
+  </div>
+
+  <!-- 完成 -->
+  <button
+    class="save"
+    [disabled]="!selectedMbti || !selectedZodiac || !selectedGender"
+    (click)="saveProfile()"
+  >
+    完成
+  </button>
+
+</div>

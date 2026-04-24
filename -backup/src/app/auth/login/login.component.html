@@ -1,0 +1,214 @@
+<h1 style="color:red">TEST_FROM_MY_APP</h1>
+
+<div class="bg-brand-cream min-h-screen flex items-center justify-center font-display antialiased p-4">
+
+  <div class="w-full max-w-[400px] bg-white rounded-3xl shadow-[0_12px_40px_-8px_rgba(93,64,55,0.08)] overflow-hidden flex flex-col relative border border-[#F5F5F5]">
+
+    <!-- Header -->
+    <div class="pt-10 pb-6 px-8 flex flex-col items-center justify-center relative bg-gradient-to-b from-[#FFF8F0] to-white">
+
+      <!-- 左上 icon -->
+      <div class="absolute top-8 left-10 opacity-80 animate-float">
+        <span class="material-symbols-outlined text-4xl" style="color:#FF9F43">
+          ramen_dining
+        </span>
+      </div>
+
+      <!-- 右上 icon -->
+      <div class="absolute top-6 right-10 opacity-60 animate-float-delayed">
+        <span class="material-symbols-outlined text-3xl" style="color:#FF9F43">
+          chat_bubble
+        </span>
+      </div>
+
+      <!-- location -->
+      <div class="absolute top-20 right-8 opacity-40 transform rotate-12">
+        <span class="material-symbols-outlined text-2xl" style="color:#8D6E63">
+          location_on
+        </span>
+      </div>
+
+      <!-- Logo -->
+      <div class="w-24 h-24 mb-5 rounded-full bg-white shadow-md border border-[#FFE0B2] flex items-center justify-center z-10">
+        <span class="material-symbols-outlined text-[3.5rem]" style="color:#8D6E63">
+          lunch_dining
+        </span>
+      </div>
+
+      <!-- Title -->
+      <div class="flex flex-col gap-1 items-center z-10">
+        <p style="color:#5D4037;font-size:2rem;font-weight:900;">
+          食遇 Match
+        </p>
+        <p style="color:#8D6E63;font-size:16px;">
+          食光荏苒，幸而遇見
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Form -->
+    <form class="px-8 pb-10 pt-2 flex flex-col gap-5 bg-white"
+          (ngSubmit)="handleLogin()">
+
+      <!-- Email -->
+      <div class="relative flex items-center">
+
+        <span class="material-symbols-outlined absolute left-4" style="color:#BCAAA4">
+          mail
+        </span>
+
+        <input
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          placeholder="Email"
+          class="w-full rounded-2xl border h-14 pl-12 pr-4 text-base shadow-sm"
+          style="border-color:#EFEBE9;color:#5D4037"
+        />
+
+      </div>
+
+      <!-- Password -->
+      <div class="relative flex items-center">
+
+        <span class="material-symbols-outlined absolute left-4" style="color:#BCAAA4">
+          lock
+        </span>
+
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          name="password"
+          [(ngModel)]="password"
+          required
+          placeholder="密碼 Password"
+          class="w-full rounded-2xl border h-14 pl-12 pr-12 text-base shadow-sm"
+          style="border-color:#EFEBE9;color:#5D4037"
+        />
+
+        <button
+          type="button"
+          (click)="togglePasswordVisibility()"
+          class="absolute right-0 top-0 bottom-0 px-4 flex items-center"
+          style="color:#BCAAA4"
+        >
+          <span class="material-symbols-outlined text-[20px]">
+            {{ showPassword ? 'visibility_off' : 'visibility' }}
+          </span>
+        </button>
+
+      </div>
+
+      <!-- Forgot password -->
+      <div class="flex justify-end -mt-2">
+        <button
+          type="button"
+          (click)="forgotPassword()"
+          style="color:#8D6E63;font-size:14px;font-weight:bold"
+          onmouseover="this.style.color='#FF9F43'"
+          onmouseout="this.style.color='#8D6E63'"
+        >
+          忘記密碼？
+        </button>
+      </div>
+
+      <!-- Login Button -->
+      <button
+        type="submit"
+        style="
+          width:100%;
+          height:48px;
+          background:#FF9F43;
+          color:white;
+          font-weight:bold;
+          border:none;
+          border-radius:16px;
+          box-shadow:0 6px 18px rgba(255,159,67,0.35);
+          font-size:18px;
+          cursor:pointer;
+          transition:0.2s;
+        "
+        onmouseover="this.style.background='#FF8F23'"
+        onmouseout="this.style.background='#FF9F43'"
+      >
+        登入
+      </button>
+
+      <!-- Register -->
+      <div class="flex justify-center mt-2">
+        <button
+          type="button"
+          (click)="navigateToRegister()"
+          style="color:#8D6E63;font-size:14px"
+        >
+          還沒有帳號？
+          <span style="color:#FF9F43;font-weight:bold;text-decoration:underline;">
+            註冊
+          </span>
+        </button>
+      </div>
+
+      <!-- 🔍 測試用: 顯示所有用戶列表 -->
+      <div style="border-top: 1px solid #EFEBE9; margin-top: 12px; padding-top: 12px;">
+        <button
+          type="button"
+          (click)="toggleUserList()"
+          style="
+            width: 100%;
+            padding: 10px;
+            background: #F5F5F5;
+            color: #8D6E63;
+            font-weight: bold;
+            border: 1px solid #EFEBE9;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+          "
+        >
+          {{ showUsers ? '隱藏' : '顯示' }} 可用帳號 ({{ allUsers.length }})
+        </button>
+
+        <!-- 用戶列表 -->
+        <div *ngIf="showUsers && allUsers.length > 0" 
+             style="
+               margin-top: 10px;
+               max-height: 200px;
+               overflow-y: auto;
+               border: 1px solid #EFEBE9;
+               border-radius: 8px;
+               background: #FFFBF7;
+             ">
+          <div *ngFor="let user of allUsers"
+               (click)="quickLogin(user.email)"
+               style="
+                 padding: 10px 12px;
+                 border-bottom: 1px solid #EFEBE9;
+                 cursor: pointer;
+                 transition: 0.2s;
+                 font-size: 12px;
+               "
+               onmouseover="this.style.background='#FFE0B2'"
+               onmouseout="this.style.background='transparent'"
+          >
+            <div style="color: #5D4037; font-weight: bold;">{{ user.username }}</div>
+            <div style="color: #8D6E63; font-size: 11px;">{{ user.email }}</div>
+            <div style="color: #BCAAA4; font-size: 10px;">MBTI: {{ user.mbti }}</div>
+          </div>
+        </div>
+
+        <div *ngIf="showUsers && allUsers.length === 0"
+             style="
+               padding: 20px;
+               text-align: center;
+               color: #BCAAA4;
+               font-size: 12px;
+             ">
+          暫無用戶資料
+        </div>
+      </div>
+
+    </form>
+
+  </div>
+</div>

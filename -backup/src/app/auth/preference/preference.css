@@ -1,0 +1,150 @@
+/* ===== 整體 ===== */
+.preference-container {
+  min-height: 100vh;
+  background: linear-gradient(#f6e3c8, #f2d3a2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 16px 32px;
+  font-family: 'Noto Sans TC', sans-serif;
+  box-sizing: border-box;
+}
+
+/* ===== 標題 ===== */
+.title-main {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.title-sub {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+/* ===== 標籤區 ===== */
+.tags-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+  margin: 24px auto;
+  justify-items: center;
+  align-items: stretch;
+}
+
+/* ===== 單一標籤卡 ===== */
+.tag-card {
+  width: 100%;
+  max-width: 150px;
+  min-height: 120px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
+  box-sizing: border-box;
+}
+
+.tag-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ 被選中 */
+.tag-card.selected {
+  border: 2px solid #111;
+  background: #f8f8f8;
+  color: #111;
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
+}
+
+/* 插圖 */
+.tag-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+/* 文字 */
+.tag-text {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ===== 完成按鈕 ===== */
+.save-btn {
+  margin-top: 24px;
+  width: 100%;
+  max-width: 240px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: none;
+  background: #888;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.save-btn:hover:not(:disabled) {
+  background: #333;
+  transform: translateY(-2px);
+}
+
+.save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== 平板 / 桌機 ===== */
+@media (min-width: 769px) {
+  .preference-container {
+    padding: 60px 24px 40px;
+  }
+
+  .title-main {
+    font-size: 40px;
+  }
+
+  .title-sub {
+    font-size: 18px;
+    margin-bottom: 36px;
+  }
+
+  .tags-grid {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 720px;
+    gap: 24px;
+    margin: 32px auto;
+  }
+
+  .tag-card {
+    max-width: 140px;
+    min-height: 130px;
+    padding: 20px 10px;
+  }
+
+  .tag-icon {
+    font-size: 36px;
+  }
+
+  .tag-text {
+    font-size: 16px;
+  }
+
+  .save-btn {
+    margin-top: 32px;
+    max-width: 260px;
+    height: 52px;
+    font-size: 18px;
+  }
+}

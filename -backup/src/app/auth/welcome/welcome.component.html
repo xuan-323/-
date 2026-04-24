@@ -1,0 +1,116 @@
+<!-- Welcome Page Root -->
+<div class="min-h-screen w-full flex flex-col bg-background-light dark:bg-background-dark text-text-main dark:text-[#f5f2f0] font-display antialiased overflow-hidden relative">
+
+  <!-- Decorative background blobs -->
+  <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-3xl"></div>
+    <div class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] bg-orange-200/20 dark:bg-orange-900/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="relative z-10 flex-1 flex flex-col items-center justify-center p-4 w-full">
+
+    <div class="w-full max-w-[420px] flex flex-col items-center gap-8">
+
+      <!-- Brand Header -->
+      <div class="flex items-center gap-2 text-text-main dark:text-white">
+        <div class="size-8 text-primary">
+          <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path
+              clip-rule="evenodd"
+              fill-rule="evenodd"
+              d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z"
+              fill="currentColor">
+            </path>
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold tracking-tight">食伴 Match</h1>
+      </div>
+
+      <!-- Illustration & Heading -->
+      <div class="flex flex-col items-center text-center gap-4 w-full">
+
+        <!-- Illustration -->
+        <div class="w-48 h-32 mb-2 relative">
+          <div
+            class="w-full h-full bg-contain bg-center bg-no-repeat"
+            style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBwy1coi9UCkqHHzToOPS7jKQiatjj2gyf2LAtftqg7gKI13J8IdmgIOEqTgwjK7nxJ7AUHANDj2yW4J7BjHwGqAdU6K0ZVWpImQqZbfOjDHWSXQO3kEkah6aBsR-hOti5d79WOLGEC1odP-qMEJoxneMuxK8b7d6z8njKvVGH-06IGtub-Q48VbcklIGz2dKuENn1q9gMFppr_rhm7nY8Oj_a7dmS9SA8DbWAkTOnYPFtsHz2XL3TIBP4a7EnCHpewfRKIGE-rpRKE');">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="material-symbols-outlined text-8xl text-primary/80 drop-shadow-sm">
+                ramen_dining
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <h2 class="text-3xl font-black leading-tight tracking-tight text-text-main dark:text-white">
+            歡迎回來！
+          </h2>
+          <p class="text-text-light dark:text-neutral-400 text-base font-medium">
+            我們很高興你來了
+          </p>
+        </div>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="w-full bg-white dark:bg-[#2c2219] rounded-2xl shadow-card p-6 flex flex-col items-center gap-4 border border-orange-100/50 dark:border-white/5 relative overflow-hidden">
+
+        <!-- Card background accent -->
+        <div class="absolute top-0 w-full h-24 bg-gradient-to-b from-orange-50/50 to-transparent dark:from-orange-900/10 pointer-events-none"></div>
+
+        <!-- Avatar -->
+        <div class="relative">
+          <div class="size-28 rounded-full p-1 bg-gradient-to-tr from-primary to-orange-300 shadow-soft">
+            <div class="w-full h-full rounded-full border-[3px] border-white dark:border-[#2c2219] overflow-hidden bg-gray-100">
+              <div
+                class="w-full h-full bg-center bg-cover"
+                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSdcUbzFyl5P7XsjXxpAmHjTaNrtILFEmY3jtZlcfhXbe04NDrdJH5QGlB_zv_I1TUWJWScXfEUi7zmz2bZnUFZZnRz6vtUjyIHwXaFikVG8OUvLTetNwLzKgN5CJmLKv355f5OkQaBvrEE6nwLdDD-ezBTHkhQoXgGcHU-Htly5C4d478Xj_CstnHc3vkAoI910buJEdeACJKgtGCsBpsRhIhM9wKCK9KHxxrI2XiF2VgMkMHaHHjc4DUrcxOpL5yyWBLiaR86myG');">
+              </div>
+            </div>
+          </div>
+          <div class="absolute bottom-1 right-1 bg-green-500 border-2 border-white dark:border-[#2c2219] size-5 rounded-full"></div>
+        </div>
+
+        <!-- User Info -->
+        <div class="flex flex-col items-center text-center">
+          <h3 class="text-text-main dark:text-white text-2xl font-bold mb-1">
+            {{ username }}
+          </h3>
+
+          <div class="flex items-center gap-1 text-primary text-sm font-bold bg-orange-50 dark:bg-orange-900/30 px-3 py-1 rounded-full mb-3">
+            <span class="material-symbols-outlined text-[16px]">verified</span>
+            <span>New User</span>
+          </div>
+
+          <p class="text-text-light dark:text-neutral-300 text-sm leading-normal max-w-[200px]">
+            「喜歡探索新餐廳，特別是日式料理！」
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Area -->
+      <div class="w-full flex flex-col items-center gap-6 mt-2">
+
+        <button
+          class="group relative w-full flex items-center justify-center overflow-hidden rounded-xl h-14 px-8 bg-primary hover:bg-orange-600 transition-all duration-300 shadow-soft hover:shadow-lg hover:-translate-y-0.5"
+          (click)="startUsing()"
+        >
+          <div class="absolute inset-0 w-full h-full bg-white/20 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-xl opacity-20"></div>
+          <span class="text-white text-lg font-bold flex items-center gap-2 z-10">
+            開始使用
+            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+              arrow_forward
+            </span>
+          </span>
+        </button>
+
+        <div class="flex items-center gap-2 text-text-light/80 dark:text-neutral-500 text-xs font-medium bg-white/50 dark:bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm">
+          <span class="material-symbols-outlined text-sm">info</span>
+          <span>下一步填寫 MBTI / 興趣讓推薦更準</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
