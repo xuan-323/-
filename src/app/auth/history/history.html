@@ -2,7 +2,6 @@
 
   <h1 class="title">📜 歷史紀錄</h1>
 
-  <!-- 偵錯列（可留可刪） -->
   <p class="debug">{{ debugText }}</p>
 
   <div class="tabs">
@@ -14,9 +13,7 @@
     </button>
   </div>
 
-  <!-- ===================== -->
   <!-- 自己吃 -->
-  <!-- ===================== -->
   <div *ngIf="tab==='solo'">
 
     <p class="empty" *ngIf="soloList.length===0">
@@ -44,9 +41,7 @@
     </div>
   </div>
 
-  <!-- ===================== -->
   <!-- 找飯友 -->
-  <!-- ===================== -->
   <div *ngIf="tab==='friend'">
 
     <p class="empty" *ngIf="friendList.length===0">
@@ -72,7 +67,6 @@
 
         <div class="time">🕒 {{ formatTime(it.time) }}</div>
 
-        <!-- 顯示聊天摘要 -->
         <div class="meta" *ngIf="it.chat && it.chat.length > 0">
           🗨 共 {{ it.chat.length }} 則對話
         </div>
@@ -82,9 +76,22 @@
 
   </div>
 
-  <!-- 回主頁按鈕 -->
-  <button class="home-float-btn" (click)="goHome()" title="回到主頁">
-    🏠
-  </button>
+  <!-- 底部三按鈕 -->
+  <div class="bottom-nav">
+    <button class="nav-btn" (click)="goHome()">
+      <span class="icon">🏠</span>
+      <span class="label">首頁</span>
+    </button>
+
+    <button class="nav-btn active">
+      <span class="icon">📜</span>
+      <span class="label">歷史</span>
+    </button>
+
+    <button class="nav-btn">
+      <span class="icon">💬</span>
+      <span class="label">聊天</span>
+    </button>
+  </div>
 
 </div>

@@ -1,13 +1,18 @@
 <div class="app-container">
   <router-outlet></router-outlet>
 
-  <!-- 歷史紀錄（在聊天按鈕上方） -->
-  <button class="history-fab" (click)="goToHistory()" aria-label="history">
-    📜
-  </button>
+  <!-- 只在聊天室頁顯示 -->
+  <ng-container *ngIf="showChatFloatingButtons">
 
-  <!-- 聊天 -->
-  <button class="chat-fab" (click)="goToChat()" aria-label="chat">
-    💬
-  </button>
+    <!-- 歷史紀錄 -->
+    <button class="history-fab" (click)="goToHistory()" aria-label="history">
+      📜
+    </button>
+
+    <!-- 聊天 -->
+    <button class="chat-fab" (click)="goToChat()" aria-label="chat">
+      💬
+    </button>
+
+  </ng-container>
 </div>
